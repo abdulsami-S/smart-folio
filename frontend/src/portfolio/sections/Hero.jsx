@@ -1,375 +1,242 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useRef } from 'react';
+import * as THREE from 'three';
+import { gsap } from 'gsap';
+import { Download, ChevronRight } from 'lucide-react';
 
-/* ─── SLOT MACHINE DIGIT REEL ─── */
-const SlotDigit = ({ target, delay = 0 }) => {
-  const reelRef = useRef(null);
-  const [triggered, setTriggered] = useState(false);
-
-  useEffect(() => {
-    if (!reelRef.current) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !triggered) {
-          setTriggered(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.5 }
-    );
-    observer.observe(reelRef.current);
-    return () => observer.disconnect();
-  }, [triggered]);
-
-  return (
-    <span
-      ref={reelRef}
-      style={{
-        display: 'inline-block',
-        height: '1.1em',
-        overflow: 'hidden',
-        lineHeight: '1.1em',
-        position: 'relative',
-      }}
-    >
-      <span
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          transform: triggered
-            ? `translateY(calc(${target} * -1.1em))`
-            : 'translateY(0)',
-          transition: triggered
-            ? `transform 1.2s cubic-bezier(0.23, 1, 0.32, 1) ${delay}s`
-            : 'none',
-        }}
-      >
-        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
-          <span key={n} style={{ height: '1.1em', display: 'block' }}>
-            {n}
-          </span>
-        ))}
-      </span>
-    </span>
-  );
-};
-
-const SlotCounter = ({ value, label }) => {
-  const digits = String(value).split('').map(Number);
-  return (
-    <div className="flex flex-col items-center">
-      <span className="text-4xl md:text-5xl font-black text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)] flex items-baseline">
-        {digits.map((d, i) => (
-          <SlotDigit key={i} target={d} delay={i * 0.15} />
-        ))}
-        <span className="ml-0.5">+</span>
-      </span>
-      <span className="text-xs uppercase tracking-[0.2em] text-white/50 mt-2 font-semibold">
-        {label}
-      </span>
-    </div>
-  );
-};
-
-/* ─── SCROLL-LINKED WORD REVEAL ─── */
-const ScrollWords = ({ text }) => {
-  const containerRef = useRef(null);
-  const words = text.split(' ');
-  const wordRefs = useRef([]);
-
-  useEffect(() => {
-    const onScroll = () => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const windowH = window.innerHeight;
-      // progress: 0 when section top hits bottom of viewport, 1 when it passes top
-      const progress = Math.max(0, Math.min(1, (windowH - rect.top) / (windowH + rect.height)));
-
-      wordRefs.current.forEach((el, i) => {
-        if (!el) return;
-        const threshold = 0.1 + i * 0.06;
-        if (progress >= threshold) {
-          el.style.clipPath = 'inset(0 0% 0 0)';
-        }
-      });
-    };
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll(); // initial check
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
-  return (
-    <div ref={containerRef} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '0 8px' }}>
-      {words.map((word, i) => (
-        <span
-          key={i}
-          ref={(el) => (wordRefs.current[i] = el)}
-          style={{
-            clipPath: 'inset(0 100% 0 0)',
-            transition: 'clip-path 0.6s ease',
-            color: 'rgba(255,255,255,0.5)',
-            fontSize: '1.1rem',
-          }}
-        >
-          {word}
-        </span>
-      ))}
-    </div>
-  );
-};
-
-/* ─── MAGNETIC BALL ─── */
-const MagneticBall = () => {
-  const heroRef = useRef(null);
-  const ballRef = useRef(null);
-  const pos = useRef({ x: 0, y: 0 });
-  const target = useRef({ x: 0, y: 0 });
-  const isHovering = useRef(false);
-
-  const animate = useCallback(() => {
-    if (isHovering.current) {
-      pos.current.x += (target.current.x * 0.3 - pos.current.x) * 0.08;
-      pos.current.y += (target.current.y * 0.3 - pos.current.y) * 0.08;
-    } else {
-      pos.current.x += (0 - pos.current.x) * 0.04;
-      pos.current.y += (0 - pos.current.y) * 0.04;
-    }
-
-    if (ballRef.current) {
-      ballRef.current.style.transform = `translate(calc(-50% + ${pos.current.x}px), calc(-50% + ${pos.current.y}px))`;
-    }
-    requestAnimationFrame(animate);
-  }, []);
-
-  useEffect(() => {
-    const hero = document.getElementById('hero');
-    if (!hero) return;
-    heroRef.current = hero;
-
-    const onMove = (e) => {
-      const rect = hero.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      const rawX = e.clientX - cx;
-      const rawY = e.clientY - cy;
-      target.current.x = Math.max(-200, Math.min(200, rawX));
-      target.current.y = Math.max(-150, Math.min(150, rawY));
-    };
-
-    const onEnter = () => { isHovering.current = true; };
-    const onLeave = () => { isHovering.current = false; };
-
-    hero.addEventListener('mousemove', onMove);
-    hero.addEventListener('mouseenter', onEnter);
-    hero.addEventListener('mouseleave', onLeave);
-
-    const raf = requestAnimationFrame(animate);
-    return () => {
-      hero.removeEventListener('mousemove', onMove);
-      hero.removeEventListener('mouseenter', onEnter);
-      hero.removeEventListener('mouseleave', onLeave);
-      cancelAnimationFrame(raf);
-    };
-  }, [animate]);
-
-  return (
-    <div
-      ref={ballRef}
-      style={{
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: '120px',
-        height: '120px',
-        borderRadius: '50%',
-        background:
-          'radial-gradient(circle, rgba(0,212,255,0.15) 0%, rgba(0,212,255,0.05) 50%, transparent 70%)',
-        border: '1px solid rgba(0,212,255,0.3)',
-        boxShadow:
-          '0 0 60px rgba(0,212,255,0.2), inset 0 0 30px rgba(0,212,255,0.1)',
-        backdropFilter: 'blur(4px)',
-        pointerEvents: 'none',
-        zIndex: 5,
-        willChange: 'transform',
-      }}
-    />
-  );
-};
-
-/* ─── HERO SECTION ─── */
 const Hero = ({ portfolio }) => {
+  const canvasRef = useRef(null);
+  const heroRef = useRef(null);
+
+  // References for GSAP
+  const labelRef = useRef(null);
+  const nameRef = useRef(null);
+  const subtitleRef = useRef(null);
+  const buttonsRef = useRef(null);
+  const statsRef = useRef(null);
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(
+      75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000
+    );
+    const renderer = new THREE.WebGLRenderer({
+      canvas, alpha: true, antialias: true
+    });
+    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    // 3000 particles in sphere formation
+    const count = 3000;
+    const positions = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos((Math.random() * 2) - 1);
+      const r = 2.8 + (Math.random() - 0.5) * 0.3;
+      positions[i*3]   = r * Math.sin(phi) * Math.cos(theta);
+      positions[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+      positions[i*3+2] = r * Math.cos(phi);
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+    const material = new THREE.PointsMaterial({
+      color: 0xe8f4ff,
+      size: 0.015,
+      transparent: true,
+      opacity: 0.9,
+      sizeAttenuation: true
+    });
+
+    const particles = new THREE.Points(geometry, material);
+    scene.add(particles);
+    camera.position.z = 6;
+
+    // Mouse tracking for magnetic tilt
+    const mouse = { x: 0, y: 0 };
+    const onMouseMove = (e) => {
+      mouse.x = (e.clientX / window.innerWidth - 0.5) * 2;
+      mouse.y = -(e.clientY / window.innerHeight - 0.5) * 2;
+    };
+    window.addEventListener('mousemove', onMouseMove);
+
+    // Animation loop
+    let frameId;
+    const animate = () => {
+      frameId = requestAnimationFrame(animate);
+      // Auto rotate
+      particles.rotation.y += 0.003;
+      particles.rotation.x += 0.001;
+      // Magnetic mouse tilt (smooth lerp)
+      particles.rotation.y += (mouse.x * 0.3 - particles.rotation.y) * 0.02;
+      particles.rotation.x += (mouse.y * 0.2 - particles.rotation.x) * 0.02;
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    // Resize
+    const onResize = () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    };
+    window.addEventListener('resize', onResize);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('resize', onResize);
+      renderer.dispose();
+      geometry.dispose();
+      material.dispose();
+    };
+  }, []);
+
+  // GSAP Animations
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.fromTo(labelRef.current,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, delay: 0.3, duration: 1, ease: "power4.out" }
+      );
+
+      gsap.fromTo(nameRef.current,
+        { opacity: 0, y: 60, filter: "blur(12px)" },
+        { opacity: 1, y: 0, filter: "blur(0px)", delay: 0.5, duration: 1, ease: "power4.out" }
+      );
+
+      gsap.fromTo(subtitleRef.current,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, delay: 0.9, duration: 1, ease: "power4.out" }
+      );
+
+      gsap.fromTo(buttonsRef.current,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, delay: 1.1, duration: 1, ease: "power4.out" }
+      );
+
+      gsap.fromTo(statsRef.current,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, delay: 1.3, duration: 1, ease: "power4.out" }
+      );
+    }, heroRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <section
-      id="hero"
-      style={{
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        textAlign: 'center',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Volumetric Light Ray Background */}
-      <div
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-[150vw] h-[100vh] volumetric-ray pointer-events-none opacity-80 mix-blend-screen"
-        style={{ clipPath: 'polygon(45% 0, 55% 0, 100% 100%, 0 100%)' }}
+    <section ref={heroRef} className="relative h-screen w-full flex flex-col items-center justify-center text-center overflow-hidden bg-[var(--bg-primary)]">
+      {/* 3D Canvas */}
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          zIndex: 1
+        }}
       />
 
-      {/* Magnetic Ball */}
-      <MagneticBall />
-
-      {/* Bottom fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[var(--bg)] to-transparent z-10 pointer-events-none" />
-
-      <div
-        style={{
-          position: 'relative',
-          zIndex: 10,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '24px',
-          marginTop: '-80px',
-        }}
+      {/* Watermark */}
+      <div 
+        className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
+        style={{ zIndex: 0 }}
       >
-        {/* 1. Label */}
-        <div
+        <h1 
           style={{
-            color: '#00d4ff',
-            fontSize: '0.85rem',
-            letterSpacing: '0.3em',
-            textTransform: 'uppercase',
-            animation: 'fadeIn 0.8s ease forwards 0.3s',
-            opacity: 0,
+            fontSize: '28vw',
+            fontWeight: 900,
+            color: 'rgba(255,255,255,0.025)',
+            letterSpacing: '-0.05em',
+            margin: 0,
+            lineHeight: 1
           }}
+        >
+          SAMI
+        </h1>
+      </div>
+
+      {/* Content */}
+      <div className="relative flex flex-col items-center" style={{ zIndex: 10 }}>
+        <p 
+          ref={labelRef}
+          style={{ color: '#00d4ff', fontSize: '0.8rem', letterSpacing: '0.3em' }}
+          className="uppercase mb-6 font-semibold"
         >
           FULL STACK DEVELOPER
-        </div>
+        </p>
 
-        {/* 2. Name */}
-        <h1
-          style={{
-            fontSize: 'clamp(3.5rem, 9vw, 8rem)',
-            fontWeight: 800,
-            letterSpacing: '-0.02em',
-            background:
-              'linear-gradient(135deg, #00d4ff 0%, #7c3aed 50%, #a855f7 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-            color: 'transparent',
-            animation: 'fadeUp 1s ease forwards 0.5s',
-            opacity: 0,
-          }}
+        <h1 
+          ref={nameRef}
+          style={{ fontSize: 'clamp(3.5rem, 9vw, 8rem)', letterSpacing: '-0.03em', lineHeight: 1 }}
+          className="mb-6 flex flex-wrap justify-center gap-x-4"
         >
-          Shaik Abdul Sami
+          <span style={{ fontWeight: 300 }} className="text-white">Shaik</span>
+          <span style={{ fontWeight: 800, fontStyle: 'italic', background: 'linear-gradient(135deg, #00d4ff, #7c3aed, #a855f7)', WebkitBackgroundClip: 'text', color: 'transparent' }}>
+            Abdul
+          </span>
+          <span style={{ fontWeight: 800 }} className="text-white">Sami</span>
         </h1>
 
-        {/* 3. Subtitle — Scroll-linked word reveal */}
-        <div
-          style={{
-            animation: 'fadeIn 0.8s ease forwards 1s',
-            opacity: 0,
-          }}
+        <p 
+          ref={subtitleRef}
+          style={{ color: 'rgba(255,255,255,0.45)', fontSize: '1.05rem' }}
+          className="max-w-2xl mx-auto mb-10 font-medium"
         >
-          <ScrollWords text="Full Stack Developer · IIIT Dharwad '27" />
+          Full Stack Developer · IIIT Dharwad '27
+        </p>
+
+        {/* Buttons */}
+        <div ref={buttonsRef} className="flex flex-col sm:flex-row gap-4 mb-16">
+          <a
+            href="#projects"
+            className="group relative px-8 py-4 bg-gradient-to-r from-[#00d4ff] to-[#4f46e5] text-white font-bold rounded-full overflow-hidden transition-transform hover:scale-105"
+          >
+            <span className="relative z-10 flex items-center gap-2">
+              View Projects <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </span>
+          </a>
+          
+          <a
+            href="/resume.pdf" // Default fallback
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-8 py-4 bg-transparent border border-[rgba(255,255,255,0.2)] text-white font-bold rounded-full hover:bg-[rgba(255,255,255,0.05)] transition-all flex items-center gap-2 justify-center"
+          >
+            <Download className="w-5 h-5" /> Download Resume
+          </a>
         </div>
 
-        {/* 4. Buttons */}
-        <div
-          style={{
-            display: 'flex',
-            gap: '16px',
-            justifyContent: 'center',
-            animation: 'fadeUp 0.8s ease forwards 1.2s',
-            opacity: 0,
-          }}
+        {/* Stats */}
+        <div 
+          ref={statsRef}
+          className="flex items-center justify-center gap-6 sm:gap-10 text-sm sm:text-base font-bold text-[rgba(255,255,255,0.6)]"
         >
-          <button
-            className="hover:scale-105 transition-all duration-300"
-            style={{
-              background: 'linear-gradient(135deg, #00d4ff, #0ea5e9)',
-              color: '#000',
-              fontWeight: 700,
-              padding: '14px 32px',
-              borderRadius: '50px',
-              boxShadow: '0 0 30px rgba(0,212,255,0.3)',
-            }}
-            onMouseOver={(e) =>
-              (e.currentTarget.style.boxShadow =
-                '0 0 50px rgba(0,212,255,0.6)')
-            }
-            onMouseOut={(e) =>
-              (e.currentTarget.style.boxShadow =
-                '0 0 30px rgba(0,212,255,0.3)')
-            }
-          >
-            View Projects
-          </button>
-
-          <button
-            className="transition-all duration-300"
-            style={{
-              background: 'transparent',
-              border: '1.5px solid rgba(0,212,255,0.5)',
-              color: '#fff',
-              padding: '14px 32px',
-              borderRadius: '50px',
-              fontWeight: 600,
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.borderColor = '#00d4ff';
-              e.currentTarget.style.boxShadow =
-                '0 0 20px rgba(0,212,255,0.4)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(0,212,255,0.5)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-          >
-            Download Resume
-          </button>
-        </div>
-
-        {/* 5. Stats Row — Slot Machine Counters */}
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-12 w-full max-w-4xl border-t border-white/10 pt-12">
-          <SlotCounter value={10} label="Projects Built" />
-          <SlotCounter value={2} label="Years Coding" />
-          <div className="flex flex-col items-center justify-center">
-            <span className="text-2xl md:text-3xl font-black text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)] flex items-center gap-3">
-              <div className="w-4 h-4 rounded-full bg-primary animate-pulse shadow-[0_0_15px_rgba(0,212,255,0.8)]" />
-              OPEN
+          <div className="flex flex-col items-center">
+            <span className="text-white text-xl">10+</span>
+            <span style={{ fontSize: '0.7rem', letterSpacing: '0.15em' }}>PROJECTS</span>
+          </div>
+          <div className="h-8 w-px bg-[rgba(255,255,255,0.1)]"></div>
+          <div className="flex flex-col items-center">
+            <span className="text-white text-xl">2+</span>
+            <span style={{ fontSize: '0.7rem', letterSpacing: '0.15em' }}>YEARS CODING</span>
+          </div>
+          <div className="h-8 w-px bg-[rgba(255,255,255,0.1)]"></div>
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
             </span>
-            <span className="text-xs uppercase tracking-[0.2em] text-white/50 mt-2 font-semibold">
-              To Internships
-            </span>
+            <span style={{ fontSize: '0.7rem', letterSpacing: '0.15em' }} className="text-white">OPEN</span>
           </div>
         </div>
       </div>
-
-      {/* Scroll Indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2, duration: 1 }}
-        className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-4"
-      >
-        <span className="text-[10px] uppercase tracking-[0.3em] text-white/40 rotate-90 mb-10 origin-bottom">
-          Scroll
-        </span>
-        <div className="w-[1px] h-20 bg-white/10 relative overflow-hidden">
-          <motion.div
-            className="absolute top-0 left-0 w-full h-1/2 bg-primary"
-            animate={{ top: ['-50%', '100%'] }}
-            transition={{ repeat: Infinity, duration: 1.5, ease: 'linear' }}
-          />
-        </div>
-      </motion.div>
     </section>
   );
 };

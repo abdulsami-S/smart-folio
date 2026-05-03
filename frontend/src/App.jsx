@@ -1,8 +1,10 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ReactLenis } from '@studio-freight/react-lenis';
+
+import Lenis from '@studio-freight/lenis';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
@@ -12,12 +14,15 @@ import { PortfolioProvider, PortfolioContext } from './context/PortfolioContext'
 import Navbar from './portfolio/components/Navbar';
 import CustomCursor, { CursorProvider } from './portfolio/components/CustomCursor';
 import MarqueeTicker from './portfolio/components/MarqueeTicker';
+import Footer from './portfolio/components/Footer';
+
 import Hero from './portfolio/sections/Hero';
 import About from './portfolio/sections/About';
 import Skills from './portfolio/sections/Skills';
 import Projects from './portfolio/sections/Projects';
 import Timeline from './portfolio/sections/Timeline';
 import Contact from './portfolio/sections/Contact';
+import CTABanner from './portfolio/sections/CTABanner';
 
 // Admin Components
 import AdminLogin from './admin/AdminLogin';
@@ -32,88 +37,73 @@ import HeroEditor from './admin/pages/HeroEditor';
 import SocialEditor from './admin/pages/SocialEditor';
 import { Loader2 } from 'lucide-react';
 
-// Premium Page Loader Sequence
-const PageLoader = ({ onComplete }) => {
-  useEffect(() => {
-    const timer = setTimeout(onComplete, 3500);
-    return () => clearTimeout(timer);
-  }, [onComplete]);
-
-  return (
-    <motion.div
-      initial={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.8, ease: 'easeInOut' }}
-      className="fixed inset-0 z-[99999] bg-black flex items-center justify-center pointer-events-none"
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: [0, 1, 1, 0], scale: [0.8, 1, 1, 1.5] }}
-        transition={{
-          duration: 3,
-          times: [0, 0.2, 0.8, 1],
-          ease: 'easeInOut',
-        }}
-        className="text-4xl md:text-6xl font-black text-white tracking-widest"
-      >
-        Shaik Abdul Sami
-        <span className="text-primary drop-shadow-[0_0_15px_rgba(0,212,255,0.8)]">
-          .
-        </span>
-      </motion.div>
-    </motion.div>
-  );
-};
+gsap.registerPlugin(ScrollTrigger);
 
 const PortfolioView = () => {
-  const { portfolio, projects, skills, timeline, loading } =
-    useContext(PortfolioContext);
-  const [appReady, setAppReady] = useState(false);
+  const { portfolio, projects, skills, timeline, loading } = useContext(PortfolioContext);
+
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.4,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smooth: true,
+      smoothTouch: false,
+    });
+
+    gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+    gsap.ticker.lagSmoothing(0);
+    lenis.on('scroll', ScrollTrigger.update);
+
+    ScrollTrigger.scrollerProxy(document.documentElement, {
+      scrollTop(value) {
+        if (arguments.length) {
+          lenis.scrollTo(value, { immediate: true });
+        }
+        return lenis.scroll;
+      },
+      getBoundingClientRect() {
+        return {
+          top: 0, left: 0,
+          width: window.innerWidth,
+          height: window.innerHeight
+        };
+      },
+      pinType: document.documentElement.style.transform ? "transform" : "fixed"
+    });
+
+    ScrollTrigger.addEventListener('refresh', () => lenis.resize());
+    ScrollTrigger.refresh();
+
+    return () => {
+      lenis.destroy();
+      ScrollTrigger.getAll().forEach(t => t.kill());
+    };
+  }, []);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#030305] text-white">
-        <Loader2 className="w-12 h-12 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-[#04050f] text-white">
+        <Loader2 className="w-12 h-12 animate-spin text-[#00d4ff]" />
       </div>
     );
   }
 
   return (
-    <ReactLenis root options={{ lerp: 0.05, duration: 1.5, smoothTouch: true }}>
-      <div className="relative bg-[var(--bg)] min-h-screen">
-        <AnimatePresence>
-          {!appReady && (
-            <PageLoader onComplete={() => setAppReady(true)} />
-          )}
-        </AnimatePresence>
-
-        {/* Global Background Glow Orbs */}
-        <div className="glow-orb-1" />
-        <div className="glow-orb-2" />
-        <div className="glow-orb-3" />
-
-        <CustomCursor />
-
-        {appReady && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1 }}
-          >
-            <Navbar portfolio={portfolio} />
-            <main>
-              <Hero portfolio={portfolio} />
-              <About portfolio={portfolio} />
-              <Skills skills={skills} />
-              <MarqueeTicker />
-              <Projects projects={projects} />
-              <Timeline timeline={timeline} />
-              <Contact portfolio={portfolio} />
-            </main>
-          </motion.div>
-        )}
-      </div>
-    </ReactLenis>
+    <div className="relative bg-[var(--bg-primary)] min-h-screen overflow-hidden">
+      <Navbar portfolio={portfolio} />
+      <main>
+        <Hero portfolio={portfolio} />
+        <About portfolio={portfolio} />
+        <Skills skills={skills} />
+        <MarqueeTicker />
+        <Projects projects={projects} />
+        <Timeline timeline={timeline} />
+        <CTABanner />
+        <Contact portfolio={portfolio} />
+        <Footer />
+      </main>
+      <CustomCursor />
+    </div>
   );
 };
 
@@ -127,9 +117,8 @@ function App() {
               <Toaster
                 position="top-right"
                 toastOptions={{
-                  className:
-                    'glass text-white border border-white/10 shadow-[0_0_20px_rgba(0,0,0,0.5)]',
-                  style: { background: '#0a0a0f', color: '#fff' },
+                  className: 'bg-[#0d0f1e] text-white border border-[rgba(255,255,255,0.1)] shadow-[0_0_20px_rgba(0,0,0,0.5)]',
+                  style: { background: '#0d0f1e', color: '#fff' },
                 }}
               />
               <Routes>

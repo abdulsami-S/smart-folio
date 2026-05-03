@@ -1,132 +1,220 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ArrowUpRight } from 'lucide-react';
 
-/* ─── FLIP TITLE (Antimatter AI style) ─── */
-const FlipTitle = ({ text }) => (
-  <div
-    style={{
-      overflow: 'hidden',
-      height: '1.2em',
-      lineHeight: '1.2em',
-      position: 'relative',
-    }}
-    className="card-title-wrap"
-  >
-    <span
-      className="block transition-transform duration-400 group-hover:-translate-y-full"
-      style={{ transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)' }}
-    >
-      {text}
-    </span>
-    <span
-      className="block text-primary transition-transform duration-400 group-hover:-translate-y-full"
-      style={{
-        transitionTimingFunction: 'cubic-bezier(0.23,1,0.32,1)',
-        position: 'absolute',
-        top: '100%',
-        left: 0,
-      }}
-    >
-      {text}
-    </span>
-  </div>
-);
+gsap.registerPlugin(ScrollTrigger);
 
-const SkillCard = ({ category, index, skills }) => {
-  const borderColors = [
-    'border-l-primary',
-    'border-l-secondary',
-    'border-l-accent',
-    'border-l-blue-500',
-    'border-l-rose-500',
-    'border-l-amber-500',
-  ];
-  const borderColor = borderColors[index % borderColors.length];
+const skillData = [
+  {
+    category: "Backend",
+    description: "Robust server-side systems and REST APIs built for scale and performance.",
+    services: ["Flask", "Node.js", "REST APIs"],
+    tools: "⚡🔧\n🌐🔗",
+  },
+  {
+    category: "Data & ML",
+    description: "Machine learning pipelines and geospatial analysis for real-world AI applications.",
+    services: ["Scikit-learn", "GeoPandas", "NumPy", "Pandas", "Rasterio"],
+    tools: "🤖📊\n🧠🗺️",
+  },
+  {
+    category: "Databases",
+    description: "Data storage and management across relational and real-time systems.",
+    services: ["MySQL", "SQLite", "Firebase"],
+    tools: "🗄️🔥\n💾📋",
+  },
+  {
+    category: "Frontend",
+    description: "Modern responsive interfaces built with React and vanilla JavaScript.",
+    services: ["React.js", "Leaflet.js", "Vanilla JS", "Responsive Design"],
+    tools: "⚛️🎨\n📱✨",
+  },
+  {
+    category: "Languages",
+    description: "Core programming languages for web apps, ML models and systems.",
+    services: ["Python", "JavaScript", "C++", "SQL", "HTML5", "CSS3"],
+    tools: "🐍⚡\n🔤🖥️",
+  },
+  {
+    category: "Tools",
+    description: "Professional development workflow, version control and deployment.",
+    services: ["Git", "GitHub", "VS Code", "Postman", "Linux"],
+    tools: "🐙💻\n🔨🐧",
+  }
+];
+
+const Skills = () => {
+  const sectionRef = useRef(null);
+  const trackRef = useRef(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) {
+      // In mobile, just reveal everything, kill trigger if exists
+      ScrollTrigger.getAll().forEach(t => {
+        if (t.vars.trigger === sectionRef.current) t.kill();
+      });
+      return;
+    }
+
+    const section = sectionRef.current;
+    const track = trackRef.current;
+
+    if (!section || !track) return;
+
+    const totalScroll = track.scrollWidth - window.innerWidth;
+
+    const ctx = gsap.context(() => {
+      gsap.to(track, {
+        x: -totalScroll,
+        ease: "none",
+        scrollTrigger: {
+          trigger: section,
+          start: "top top",
+          end: () => "+=" + totalScroll,
+          scrub: 1,
+          pin: true,
+          anticipatePin: 1,
+          onUpdate: (self) => {
+            const idx = Math.min(Math.round(self.progress * 5), 5);
+            setActiveIndex(idx);
+          }
+        }
+      });
+      
+      // Global Animation Rule for section entrance (if needed)
+      // Since it's a pinned section, blur entrance might clash if applied to the whole section.
+      // We will apply it to the header instead.
+      gsap.fromTo(section.querySelector('.fixed-header'), {
+        opacity: 0, y: 60, filter: "blur(8px)"
+      }, {
+        opacity: 1, y: 0, filter: "blur(0px)", duration: 1, ease: "power4.out",
+        scrollTrigger: {
+          trigger: section,
+          start: "top 75%",
+          toggleActions: "play none none reverse"
+        }
+      });
+
+    }, sectionRef);
+
+    return () => {
+      ctx.revert();
+    };
+  }, [isMobile]);
 
   return (
-    <div
-      className={`bg-[#0a0a0f] border border-white/5 border-l-4 ${borderColor} rounded-xl p-8 group relative overflow-hidden transition-all duration-[400ms] ease-in-out hover:bg-gradient-to-br hover:from-[#11111a] hover:to-[#0a0a0f] hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]`}
+    <section 
+      ref={sectionRef} 
+      id="skills"
+      className={`relative bg-[var(--bg-primary)] ${isMobile ? 'py-20 px-4' : 'h-screen overflow-hidden'}`}
     >
-      {/* Category Number */}
-      <div className="absolute top-6 right-6 text-[10px] font-black text-white/20 tracking-[0.2em] transition-colors duration-[400ms] group-hover:text-white/40">
-        0{index + 1}
+      {/* HEADER */}
+      <div 
+        className={`fixed-header ${isMobile ? 'mb-12' : 'absolute top-12 left-20 z-20 pointer-events-none'}`}
+      >
+        <p className="text-[var(--accent-cyan)] text-[0.8rem] tracking-[0.2em] font-bold uppercase mb-2">
+          02 // EXPERTISE
+        </p>
+        <h2 className="text-white text-[clamp(2rem,4vw,3.5rem)] font-black tracking-tighter leading-tight">
+          Core Arsenal.
+        </h2>
       </div>
 
-      {/* Antimatter-style flip title */}
-      <h3 className="text-2xl font-bold mb-2 text-white">
-        <FlipTitle text={category} />
-      </h3>
-      <p className="text-sm text-white/40 mb-8">{skills.length} Technologies</p>
+      {/* TRACK */}
+      <div 
+        ref={trackRef} 
+        className={`${isMobile ? 'flex flex-col gap-6 w-full' : 'flex flex-row items-center gap-[24px] h-full will-change-transform'}`}
+        style={{ padding: isMobile ? '0' : '0 calc(50vw - 210px)' }}
+      >
+        {skillData.map((skill, i) => {
+          const isActive = isMobile ? true : activeIndex === i;
 
-      {/* Subtle line that expands on hover */}
-      <div
-        className={`h-[2px] w-12 bg-white/10 mb-8 transition-all duration-[400ms] ease-in-out group-hover:w-full group-hover:bg-current ${borderColor.replace('border-l-', 'text-')}`}
-      />
-
-      {/* Skills List (Revealed on hover with staggered delays) */}
-      <div className="space-y-4 max-h-0 opacity-0 translate-y-[10px] group-hover:translate-y-0 group-hover:max-h-[500px] group-hover:opacity-100 transition-all duration-[400ms] ease-in-out overflow-hidden">
-        {skills.map((skill, i) => (
-          <div
-            key={skill._id}
-            className="flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity duration-[400ms] ease-in-out"
-            style={{ transitionDelay: `${i * 0.05}s` }}
-          >
-            <span className="text-sm font-medium text-white/80">
-              {skill.name}
-            </span>
-            <div className="flex gap-1">
-              {[1, 2, 3, 4, 5].map((level) => (
-                <div
-                  key={level}
-                  className={`w-1.5 h-1.5 rounded-full ${
-                    level <= skill.proficiency ? 'bg-white/80' : 'bg-white/10'
-                  }`}
+          return (
+            <div 
+              key={i}
+              className={`
+                shrink-0 rounded-[20px] p-[36px] transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]
+                flex flex-col relative overflow-hidden
+                ${isMobile ? 'w-full min-h-[400px]' : 'w-[420px] h-[520px]'}
+                ${isActive 
+                  ? 'bg-gradient-to-br from-[#3730a3] via-[#4338ca] to-[#4f46e5] border-[rgba(255,255,255,0.2)] shadow-[0_0_0_1px_rgba(99,102,241,0.3),0_40px_100px_rgba(67,56,202,0.5),inset_0_1px_0_rgba(255,255,255,0.1)]' 
+                  : 'bg-[#0c0c18] border-[rgba(255,255,255,0.06)] scale-100'}
+              `}
+              style={{
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                transform: isActive && !isMobile ? 'scale(1.04) translateY(-8px)' : 'none'
+              }}
+            >
+              {/* Top Row */}
+              <div className="flex justify-between items-start w-full">
+                <span 
+                  className="font-black leading-none"
+                  style={{
+                    fontSize: '5rem',
+                    color: isActive ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)'
+                  }}
+                >
+                  0{i + 1}
+                </span>
+                <ArrowUpRight 
+                  className={`w-8 h-8 transition-colors duration-500 ${isActive ? 'text-white' : 'text-white/20'}`} 
                 />
-              ))}
+              </div>
+
+              <div className="mt-auto">
+                <h3 
+                  className={`text-white transition-all duration-500 mb-4`}
+                  style={{
+                    fontSize: isActive ? '1.6rem' : '1.5rem',
+                    fontWeight: isActive ? 700 : 600
+                  }}
+                >
+                  {skill.category}
+                </h3>
+                
+                <div 
+                  className={`transition-all duration-500 overflow-hidden ${isActive ? 'opacity-100 max-h-[300px]' : 'opacity-0 max-h-0'}`}
+                >
+                  <p className="text-[rgba(255,255,255,0.65)] text-[0.9rem] leading-[1.7] mb-6">
+                    {skill.description}
+                  </p>
+                  
+                  <div className="w-full h-px bg-[rgba(255,255,255,0.12)] mb-6"></div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="text-[0.65rem] text-white/40 font-bold uppercase tracking-widest mb-3">SERVICES</h4>
+                      <ul className="flex flex-col gap-2">
+                        {skill.services.map((s, idx) => (
+                          <li key={idx} className="text-white text-[0.85rem] font-medium">• {s}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="text-[0.65rem] text-white/40 font-bold uppercase tracking-widest mb-3">TOOLS</h4>
+                      <div className="whitespace-pre-line text-[1.6rem] leading-[1.4] tracking-widest select-none">
+                        {skill.tools}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
-
-      {/* View Details Label (Fades out on hover) */}
-      <div className="text-xs uppercase tracking-widest text-primary font-bold transition-opacity duration-[400ms] ease-in-out opacity-100 group-hover:opacity-0 absolute bottom-8">
-        Hover to view
-      </div>
-    </div>
-  );
-};
-
-const Skills = ({ skills }) => {
-  const groupedSkills = useMemo(() => {
-    return skills.reduce((acc, skill) => {
-      if (!acc[skill.category]) acc[skill.category] = [];
-      acc[skill.category].push(skill);
-      return acc;
-    }, {});
-  }, [skills]);
-
-  return (
-    <section id="skills" className="py-32 relative z-10">
-      <div className="container mx-auto px-6 lg:px-12 relative z-10">
-        <div className="mb-20">
-          <span className="text-[10px] uppercase tracking-[0.3em] text-secondary mb-4 block">
-            02 // Expertise
-          </span>
-          <h2 className="text-5xl md:text-7xl font-black">
-            Core <span className="text-secondary">Arsenal.</span>
-          </h2>
-          <div className="w-[100px] h-[1px] bg-secondary mt-6" />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Object.entries(groupedSkills).map(([category, catSkills], index) => (
-            <SkillCard
-              key={category}
-              category={category}
-              index={index}
-              skills={catSkills}
-            />
-          ))}
-        </div>
+          );
+        })}
       </div>
     </section>
   );

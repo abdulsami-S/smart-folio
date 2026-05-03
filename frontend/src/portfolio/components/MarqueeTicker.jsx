@@ -1,66 +1,60 @@
 import React from 'react';
 
-const techs = [
-  'React',
-  'Python',
-  'Flask',
-  'Node.js',
-  'MongoDB',
-  'Three.js',
-  'GSAP',
-  'Scikit-learn',
-  'JavaScript',
-  'TypeScript',
-  'Git',
-  'Linux',
-  'REST APIs',
-  'Firebase',
-  'GeoPandas',
+const TECH_STACK = [
+  'REACT', 'PYTHON', 'FLASK', 'NODE.JS', 'MONGODB',
+  'THREE.JS', 'GSAP', 'SCIKIT-LEARN', 'JAVASCRIPT',
+  'TYPESCRIPT', 'GIT', 'LINUX', 'REST APIS', 'FIREBASE'
 ];
 
-const TechRow = ({ items }) =>
-  items.map((tech, i) => (
-    <span key={i} className="flex-shrink-0 flex items-center gap-6">
-      <span>{tech}</span>
-      <span className="text-primary">·</span>
-    </span>
-  ));
+// Duplicate to ensure seamless loop
+const ROW_ITEMS = [...TECH_STACK, ...TECH_STACK, ...TECH_STACK];
 
 const MarqueeTicker = () => {
   return (
-    <div className="py-16 relative z-10 overflow-hidden marquee-wrapper select-none">
-      {/* Row 1 — scrolls LEFT */}
-      <div className="flex whitespace-nowrap mb-4">
-        <div
-          className="flex items-center gap-6 marquee-track"
-          style={{
-            fontSize: '0.85rem',
-            textTransform: 'uppercase',
-            letterSpacing: '0.2em',
-            color: 'rgba(255,255,255,0.2)',
-          }}
-        >
-          <TechRow items={techs} />
-          <TechRow items={techs} />
+    <section className="py-20 bg-[var(--bg-primary)] overflow-hidden wrapper relative border-y border-[rgba(255,255,255,0.05)]">
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes marqueeLeft {
+          from { transform: translateX(0) }
+          to   { transform: translateX(-33.333333%) }
+        }
+        @keyframes marqueeRight {
+          from { transform: translateX(-33.333333%) }
+          to   { transform: translateX(0) }
+        }
+        .track-left  { animation: marqueeLeft 30s linear infinite }
+        .track-right { animation: marqueeRight 38s linear infinite }
+        .wrapper:hover .track-left,
+        .wrapper:hover .track-right {
+          animation-play-state: paused
+        }
+      `}} />
+      
+      <div className="flex flex-col gap-6 transform -rotate-2 scale-105">
+        {/* Top Row (Left) */}
+        <div className="flex whitespace-nowrap track-left w-max">
+          {ROW_ITEMS.map((tech, i) => (
+            <React.Fragment key={i}>
+              <span className="text-[0.8rem] uppercase tracking-[0.2em] font-medium" style={{ color: 'rgba(255,255,255,0.18)' }}>
+                {tech}
+              </span>
+              <span className="mx-6 text-[0.8rem]" style={{ color: 'rgba(255,255,255,0.18)' }}>·</span>
+            </React.Fragment>
+          ))}
         </div>
-      </div>
 
-      {/* Row 2 — scrolls RIGHT */}
-      <div className="flex whitespace-nowrap">
-        <div
-          className="flex items-center gap-6 marquee-track-reverse"
-          style={{
-            fontSize: '0.85rem',
-            textTransform: 'uppercase',
-            letterSpacing: '0.2em',
-            color: 'rgba(255,255,255,0.2)',
-          }}
-        >
-          <TechRow items={[...techs].reverse()} />
-          <TechRow items={[...techs].reverse()} />
+        {/* Bottom Row (Right) */}
+        <div className="flex whitespace-nowrap track-right w-max">
+          {ROW_ITEMS.map((tech, i) => (
+            <React.Fragment key={i}>
+              <span className="text-[0.8rem] uppercase tracking-[0.2em] font-medium" style={{ color: 'rgba(255,255,255,0.18)' }}>
+                {tech}
+              </span>
+              <span className="mx-6 text-[0.8rem]" style={{ color: 'rgba(255,255,255,0.18)' }}>·</span>
+            </React.Fragment>
+          ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 
