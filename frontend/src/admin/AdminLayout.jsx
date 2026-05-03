@@ -3,7 +3,6 @@ import { Outlet, NavLink } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { LayoutDashboard, FolderKanban, Wrench, FileText, Clock, Home as HomeIcon, Share2, LogOut } from 'lucide-react';
 import ThemeToggle from '../portfolio/components/ThemeToggle';
-import { motion, AnimatePresence } from 'framer-motion';
 
 const AdminLayout = () => {
   const { logout } = useContext(AuthContext);
@@ -67,17 +66,9 @@ const AdminLayout = () => {
         </header>
 
         <div className="p-4 md:p-8 flex-1 overflow-y-auto">
-          <AnimatePresence mode="wait">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="h-full"
-            >
-              <Outlet />
-            </motion.div>
-          </AnimatePresence>
+          <div className="h-full">
+            <Outlet />
+          </div>
         </div>
       </main>
 

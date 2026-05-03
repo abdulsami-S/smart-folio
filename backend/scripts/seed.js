@@ -83,6 +83,14 @@ const seedDB = async () => {
         category: "Web App",
         order: 4,
         visible: true
+      },
+      {
+        title: "Smart Folio – Premium 3D Portfolio",
+        description: "A highly dynamic, premium portfolio built with a raw Three.js particle sphere, GSAP animations, Lenis smooth scrolling, and an interactive admin dashboard. Features horizontal pin scrolling and custom cursors.",
+        techStack: ["React", "Three.js", "GSAP", "Tailwind CSS", "Node.js", "MongoDB"],
+        category: "Web App",
+        order: 5,
+        visible: true
       }
     ]);
     console.log('Projects seeded.');

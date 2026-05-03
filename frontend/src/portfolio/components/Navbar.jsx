@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
 import ThemeToggle from './ThemeToggle';
 import { Menu, X } from 'lucide-react';
-import { useLenis } from '@studio-freight/react-lenis';
+import { gsap } from 'gsap';
 
 const Navbar = ({ portfolio }) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('hero');
-  const lenis = useLenis();
+  const navRef = useRef(null);
 
   const navLinks = [
     { name: 'About', href: '#about' },
@@ -16,6 +15,18 @@ const Navbar = ({ portfolio }) => {
     { name: 'Projects', href: '#projects' },
     { name: 'Experience', href: '#experience' },
   ];
+
+  useEffect(() => {
+    if (!navRef.current) return;
+    
+    gsap.fromTo(navRef.current, {
+      y: -80, opacity: 0
+    }, {
+      y: 0, opacity: 1,
+      duration: 1, delay: 2.5,
+      ease: "power4.out"
+    });
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,28 +51,22 @@ const Navbar = ({ portfolio }) => {
   const scrollTo = (e, href) => {
     e.preventDefault();
     setMobileMenuOpen(false);
-    if (lenis) {
-      lenis.scrollTo(href, { offset: -80, duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
-    } else {
-      document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
-    }
+    document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
     <>
-      <motion.nav 
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 4.5 }} // Slide down last in sequence
+      <nav 
+        ref={navRef}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           scrolled 
-            ? 'py-4 bg-black/70 backdrop-blur-[24px] border-b border-white/5 shadow-lg' 
+            ? 'py-4 bg-[#04050f]/80 backdrop-blur-md border-b border-[rgba(255,255,255,0.05)] shadow-lg' 
             : 'py-6 bg-transparent border-b border-transparent'
         }`}
       >
         <div className="container mx-auto px-6 lg:px-12 flex justify-between items-center">
-          <a href="#hero" onClick={(e) => scrollTo(e, '#hero')} className="text-2xl font-bold text-white tracking-tight cursor-pointer relative z-50 group">
-            Shaik Abdul Sami<span className="text-primary group-hover:text-secondary transition-colors duration-300 drop-shadow-[0_0_8px_rgba(0,212,255,0.8)]">.</span>
+          <a href="#hero" onClick={(e) => scrollTo(e, '#hero')} className="text-xl md:text-2xl font-black text-white tracking-tight cursor-pointer relative z-50 group">
+            Shaik Abdul Sami<span className="text-[var(--accent-cyan)] transition-colors duration-300 drop-shadow-[0_0_8px_rgba(0,212,255,0.8)]">.</span>
           </a>
 
           {/* Desktop Nav */}
@@ -73,15 +78,13 @@ const Navbar = ({ portfolio }) => {
                     href={link.href}
                     onClick={(e) => scrollTo(e, link.href)}
                     className={`text-[11px] font-bold uppercase tracking-[0.2em] transition-colors cursor-pointer block py-2 ${
-                      activeSection === link.href.substring(1) ? 'text-white' : 'text-gray-400 hover:text-white'
+                      activeSection === link.href.substring(1) ? 'text-white' : 'text-[rgba(255,255,255,0.5)] hover:text-white'
                     }`}
                   >
                     {link.name}
                     {activeSection === link.href.substring(1) && (
-                      <motion.div 
-                        layoutId="navUnderline"
-                        className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary shadow-[0_0_8px_rgba(0,212,255,0.8)]"
-                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      <div 
+                        className="absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--accent-cyan)] shadow-[0_0_8px_rgba(0,212,255,0.8)]"
                       />
                     )}
                   </a>
@@ -89,12 +92,12 @@ const Navbar = ({ portfolio }) => {
               ))}
             </ul>
             
-            <div className="flex items-center gap-6 border-l border-white/10 pl-6">
+            <div className="flex items-center gap-6 border-l border-[rgba(255,255,255,0.1)] pl-6">
               <ThemeToggle />
               <a 
                 href="#contact"
                 onClick={(e) => scrollTo(e, '#contact')}
-                className="text-[11px] font-bold uppercase tracking-[0.2em] px-5 py-2.5 rounded-full border border-primary/50 text-primary hover:bg-primary/10 hover:shadow-[0_0_15px_rgba(0,212,255,0.3)] transition-all cursor-pointer"
+                className="text-[11px] font-bold uppercase tracking-[0.2em] px-5 py-2.5 rounded-full border border-[var(--accent-cyan)]/50 text-[var(--accent-cyan)] hover:bg-[var(--accent-cyan)]/10 hover:shadow-[0_0_15px_rgba(0,212,255,0.3)] transition-all cursor-pointer"
               >
                 Hire Me
               </a>
@@ -104,45 +107,43 @@ const Navbar = ({ portfolio }) => {
           {/* Mobile Nav Toggle */}
           <div className="md:hidden flex items-center gap-4 z-50">
             <ThemeToggle />
-            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 text-white cursor-pointer">
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 text-white cursor-pointer transition-transform">
               {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </div>
-      </motion.nav>
+      </nav>
 
       {/* Mobile Menu */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div 
-            initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-            animate={{ opacity: 1, backdropFilter: 'blur(24px)' }}
-            exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-            className="fixed inset-0 z-40 bg-black/90 flex flex-col justify-center items-center md:hidden"
-          >
-            <ul className="flex flex-col items-center gap-8">
-              {[...navLinks, { name: 'Contact', href: '#contact' }].map((link, i) => (
-                <motion.li 
-                  key={link.name}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                >
-                  <a 
-                    href={link.href}
-                    onClick={(e) => scrollTo(e, link.href)}
-                    className={`text-2xl font-black uppercase tracking-widest cursor-pointer ${
-                      activeSection === link.href.substring(1) ? 'text-primary drop-shadow-[0_0_8px_rgba(0,212,255,0.8)]' : 'text-white/60'
-                    }`}
-                  >
-                    {link.name}
-                  </a>
-                </motion.li>
-              ))}
-            </ul>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div 
+        className={`fixed inset-0 z-40 bg-[#04050f]/95 backdrop-blur-lg flex flex-col justify-center items-center md:hidden transition-all duration-500 ease-in-out ${
+          mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        <ul className="flex flex-col items-center gap-8">
+          {[...navLinks, { name: 'Contact', href: '#contact' }].map((link, i) => (
+            <li 
+              key={link.name}
+              style={{
+                transitionDelay: mobileMenuOpen ? `${i * 0.1}s` : '0s',
+                transform: mobileMenuOpen ? 'translateY(0)' : 'translateY(20px)',
+                opacity: mobileMenuOpen ? 1 : 0,
+                transition: 'all 0.5s ease-out'
+              }}
+            >
+              <a 
+                href={link.href}
+                onClick={(e) => scrollTo(e, link.href)}
+                className={`text-2xl font-black uppercase tracking-widest cursor-pointer ${
+                  activeSection === link.href.substring(1) ? 'text-[var(--accent-cyan)] drop-shadow-[0_0_8px_rgba(0,212,255,0.8)]' : 'text-[rgba(255,255,255,0.6)]'
+                }`}
+              >
+                {link.name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
     </>
   );
 };

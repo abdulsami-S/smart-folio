@@ -1,6 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { AuthContext } from '../context/AuthContext';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -40,10 +39,8 @@ const AdminLogin = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[var(--bg)] text-[var(--text)] px-4">
-      <motion.div 
-        animate={shake ? { x: [-10, 10, -10, 10, 0] } : {}}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-md p-8 rounded-2xl glass shadow-xl border border-white/10 dark:border-white/5 relative overflow-hidden"
+      <div 
+        className={`w-full max-w-md p-8 rounded-2xl glass shadow-xl border border-white/10 dark:border-white/5 relative overflow-hidden ${shake ? 'animate-[shake_0.4s_ease-in-out]' : ''}`}
       >
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-secondary to-accent"></div>
         <h2 className="text-3xl font-bold mb-6 text-center text-gradient">Admin Access</h2>
@@ -90,7 +87,7 @@ const AdminLogin = () => {
             {isSubmitting ? <Loader2 className="animate-spin" size={24} /> : 'Login'}
           </button>
         </form>
-      </motion.div>
+      </div>
     </div>
   );
 };

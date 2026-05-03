@@ -1,15 +1,14 @@
-import React, { useEffect, useState, useRef, createContext, useContext } from 'react';
+import React, { useEffect, useRef, createContext, useContext } from 'react';
 
-/* ─── CURSOR CONTEXT (global cursor mode state) ─── */
-export const CursorContext = createContext({
+// Keep Context for backwards compatibility if needed, but we don't actively use it now
+const CursorContext = createContext({
   cursorMode: 'default',
   setCursorMode: () => {},
 });
 
 export const CursorProvider = ({ children }) => {
-  const [cursorMode, setCursorMode] = useState('default');
   return (
-    <CursorContext.Provider value={{ cursorMode, setCursorMode }}>
+    <CursorContext.Provider value={{ cursorMode: 'default', setCursorMode: () => {} }}>
       {children}
     </CursorContext.Provider>
   );
@@ -17,180 +16,133 @@ export const CursorProvider = ({ children }) => {
 
 export const useCursorMode = () => useContext(CursorContext);
 
-/* ─── CUSTOM CURSOR COMPONENT ─── */
-const CustomCursor = () => {
-  const { cursorMode } = useCursorMode();
-  const [isHovering, setIsHovering] = useState(false);
-  const [isClicking, setIsClicking] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
+// Initialize global state
+if (typeof window !== 'undefined') {
+  window.__cursorMode = 'default';
+}
 
+const CustomCursor = () => {
   const dotRef = useRef(null);
   const ringRef = useRef(null);
   const labelRef = useRef(null);
 
-  const mouse = useRef({ x: 0, y: 0 });
-  const delayedMouse = useRef({ x: 0, y: 0 });
-  const hoveringRef = useRef(false);
-  const clickingRef = useRef(false);
-  const modeRef = useRef('default');
-
-  // Keep refs in sync with state
-  useEffect(() => { hoveringRef.current = isHovering; }, [isHovering]);
-  useEffect(() => { clickingRef.current = isClicking; }, [isClicking]);
-  useEffect(() => { modeRef.current = cursorMode; }, [cursorMode]);
+  // Use refs to store actual positions to decouple from React state rendering delays
+  const mouse = useRef({ x: -100, y: -100 });
+  const ringPos = useRef({ x: -100, y: -100 });
 
   useEffect(() => {
-    if (window.matchMedia('(pointer: coarse)').matches) return;
-    setIsVisible(true);
+    // Hide cursor on touch devices
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) return;
+
+    const dot = dotRef.current;
+    const ring = ringRef.current;
+    const label = labelRef.current;
 
     const onMouseMove = (e) => {
       mouse.current.x = e.clientX;
       mouse.current.y = e.clientY;
-
-      if (dotRef.current) {
-        dotRef.current.style.transform = `translate(calc(${e.clientX}px - 50%), calc(${e.clientY}px - 50%))`;
-      }
-    };
-
-    const onMouseDown = () => setIsClicking(true);
-    const onMouseUp = () => setIsClicking(false);
-
-    const handleMouseOver = (e) => {
-      const target = e.target;
-      if (
-        target.tagName.toLowerCase() === 'a' ||
-        target.tagName.toLowerCase() === 'button' ||
-        target.closest('a') ||
-        target.closest('button') ||
-        target.classList.contains('cursor-pointer') ||
-        window.getComputedStyle(target).cursor === 'pointer'
-      ) {
-        setIsHovering(true);
-      } else {
-        setIsHovering(false);
-      }
     };
 
     window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mousedown', onMouseDown);
-    window.addEventListener('mouseup', onMouseUp);
-    window.addEventListener('mouseover', handleMouseOver);
 
-    let rafId;
+    let animationFrameId;
+
     const render = () => {
-      delayedMouse.current.x +=
-        (mouse.current.x - delayedMouse.current.x) * 0.12;
-      delayedMouse.current.y +=
-        (mouse.current.y - delayedMouse.current.y) * 0.12;
+      // Lerp ring towards mouse
+      ringPos.current.x += (mouse.current.x - ringPos.current.x) * 0.15;
+      ringPos.current.y += (mouse.current.y - ringPos.current.y) * 0.15;
 
-      if (ringRef.current) {
-        const scale = clickingRef.current ? 0.75 : 1;
-        ringRef.current.style.transform = `translate(calc(${delayedMouse.current.x}px - 50%), calc(${delayedMouse.current.y}px - 50%)) scale(${scale})`;
+      // Update dot instantly
+      if (dot) {
+        dot.style.transform = `translate3d(${mouse.current.x}px, ${mouse.current.y}px, 0) translate(-50%, -50%)`;
+      }
 
-        const mode = modeRef.current;
-        if (mode === 'view') {
-          ringRef.current.style.width = '80px';
-          ringRef.current.style.height = '80px';
-          ringRef.current.style.borderColor = 'rgba(0,212,255,0.9)';
-          ringRef.current.style.background = 'rgba(0,212,255,0.15)';
-        } else if (hoveringRef.current) {
-          ringRef.current.style.width = '64px';
-          ringRef.current.style.height = '64px';
-          ringRef.current.style.borderColor = 'rgba(0,212,255,0.9)';
-          ringRef.current.style.background = 'transparent';
+      // Update ring with lerped position
+      if (ring) {
+        ring.style.transform = `translate3d(${ringPos.current.x}px, ${ringPos.current.y}px, 0) translate(-50%, -50%)`;
+
+        // Handle VIEW mode logic directly in the render loop for absolute smooth performance
+        if (window.__cursorMode === 'view') {
+          ring.style.width = '80px';
+          ring.style.height = '80px';
+          ring.style.background = 'rgba(0,212,255,0.1)';
+          ring.style.borderColor = 'rgba(0,212,255,0.4)';
+          if (label) label.style.opacity = '1';
         } else {
-          ringRef.current.style.width = '40px';
-          ringRef.current.style.height = '40px';
-          ringRef.current.style.borderColor = 'rgba(0,212,255,0.6)';
-          ringRef.current.style.background = 'transparent';
+          ring.style.width = '40px';
+          ring.style.height = '40px';
+          ring.style.background = 'transparent';
+          ring.style.borderColor = 'rgba(0,212,255,0.3)';
+          if (label) label.style.opacity = '0';
         }
       }
 
-      // Label visibility
-      if (labelRef.current) {
-        labelRef.current.style.opacity = modeRef.current === 'view' ? '1' : '0';
-      }
-
-      // Dot visibility in view mode
-      if (dotRef.current) {
-        dotRef.current.style.opacity = modeRef.current === 'view' ? '0' : '1';
-      }
-
-      rafId = requestAnimationFrame(render);
+      animationFrameId = requestAnimationFrame(render);
     };
+
     render();
+
+    // Handle interactive elements hover effect (global)
+    const handleMouseOver = (e) => {
+      const target = e.target;
+      const isInteractive = target.closest('a, button, input, textarea, [role="button"]');
+      if (isInteractive && window.__cursorMode !== 'view') {
+        if (ring) {
+          ring.style.width = '60px';
+          ring.style.height = '60px';
+          ring.style.background = 'rgba(0,212,255,0.05)';
+        }
+      }
+    };
+
+    const handleMouseOut = (e) => {
+      const target = e.target;
+      const isInteractive = target.closest('a, button, input, textarea, [role="button"]');
+      if (isInteractive && window.__cursorMode !== 'view') {
+        if (ring) {
+          ring.style.width = '40px';
+          ring.style.height = '40px';
+          ring.style.background = 'transparent';
+        }
+      }
+    };
+
+    document.addEventListener('mouseover', handleMouseOver);
+    document.addEventListener('mouseout', handleMouseOut);
 
     return () => {
       window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mousedown', onMouseDown);
-      window.removeEventListener('mouseup', onMouseUp);
-      window.removeEventListener('mouseover', handleMouseOver);
-      cancelAnimationFrame(rafId);
+      document.removeEventListener('mouseover', handleMouseOver);
+      document.removeEventListener('mouseout', handleMouseOut);
+      cancelAnimationFrame(animationFrameId);
     };
   }, []);
 
-  if (!isVisible) return null;
+  // Return empty on touch devices
+  if (typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
+    return null;
+  }
 
   return (
     <>
-      {/* DOT */}
-      <div
-        ref={dotRef}
-        style={{
-          width: '8px',
-          height: '8px',
-          borderRadius: '50%',
-          background: '#00d4ff',
-          boxShadow: '0 0 10px #00d4ff',
-          pointerEvents: 'none',
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          zIndex: 9999,
-          willChange: 'transform',
-          transition: 'opacity 0.3s ease',
-        }}
-      />
-      {/* RING */}
-      <div
+      <div 
         ref={ringRef}
-        style={{
-          width: '40px',
-          height: '40px',
-          borderRadius: '50%',
-          background: 'transparent',
-          border: '1.5px solid rgba(0,212,255,0.6)',
-          pointerEvents: 'none',
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          zIndex: 9998,
-          transition:
-            'width 0.3s ease, height 0.3s ease, border-color 0.3s ease, background 0.3s ease',
-          willChange: 'transform, width, height, border-color, background',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
+        className="fixed top-0 left-0 pointer-events-none z-[9999] rounded-full border-[var(--accent-cyan)] flex items-center justify-center transition-[width,height,background-color] duration-300 ease-out will-change-transform"
+        style={{ width: '40px', height: '40px', borderWidth: '1px' }}
       >
-        {/* VIEW label inside ring */}
-        <span
+        <span 
           ref={labelRef}
-          style={{
-            fontSize: '9px',
-            fontWeight: 800,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            color: '#00d4ff',
-            opacity: 0,
-            transition: 'opacity 0.3s ease',
-            pointerEvents: 'none',
-            whiteSpace: 'nowrap',
-          }}
+          className="text-[10px] font-bold text-[var(--accent-cyan)] tracking-widest uppercase transition-opacity duration-300"
+          style={{ opacity: 0 }}
         >
-          VIEW →
+          VIEW
         </span>
       </div>
+      <div 
+        ref={dotRef}
+        className="fixed top-0 left-0 pointer-events-none z-[10000] rounded-full bg-[var(--accent-cyan)] will-change-transform"
+        style={{ width: '8px', height: '8px' }}
+      />
     </>
   );
 };
