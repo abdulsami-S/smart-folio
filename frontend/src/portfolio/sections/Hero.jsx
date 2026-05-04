@@ -1,22 +1,184 @@
-import React, { useEffect, useRef, useContext } from 'react';
+import React, { useEffect, useRef, useContext, useState } from 'react';
 import { gsap } from 'gsap';
-import { Download, ChevronRight } from 'lucide-react';
+import { Download, ChevronRight, MapPin, Sparkles, ArrowDown } from 'lucide-react';
 import { ThemeContext } from '../../context/ThemeContext';
 import { FALLBACK_PROJECTS } from '../data/projects';
 
+/* ─── Magnetic Button ─────────────────────────────────────────── */
+const MagneticBtn = ({ children, className, style, href, target, rel }) => {
+  const wrapRef = useRef(null);
+  const innerRef = useRef(null);
+  const isActive = useRef(false);
+  const RADIUS = 160; // px — magnetic field radius
+
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    const inner = innerRef.current;
+    if (!wrap || !inner) return;
+
+    const onMouseMove = (e) => {
+      const rect = wrap.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = e.clientX - cx;
+      const dy = e.clientY - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < RADIUS) {
+        isActive.current = true;
+        const strength = Math.max(0, 1 - dist / RADIUS); // 0 at edge, 1 at center
+        const pullX = dx * 0.65;
+        const pullY = dy * 0.65;
+        // Button body moves strongly
+        gsap.to(wrap, {
+          x: pullX,
+          y: pullY,
+          scale: 1 + strength * 0.12,
+          rotateX: (-dy / RADIUS) * 15,
+          rotateY: (dx / RADIUS) * 15,
+          boxShadow: `0 ${8 + strength * 30}px ${20 + strength * 60}px rgba(201,112,74,${0.15 + strength * 0.35})`,
+          duration: 0.4,
+          ease: 'power2.out',
+          transformPerspective: 600,
+        });
+        // Inner text moves in opposite direction (creates depth/parallax)
+        gsap.to(inner, {
+          x: -dx * 0.12,
+          y: -dy * 0.12,
+          duration: 0.4,
+          ease: 'power2.out',
+        });
+      } else if (isActive.current) {
+        isActive.current = false;
+        gsap.to(wrap, {
+          x: 0, y: 0, scale: 1, rotateX: 0, rotateY: 0,
+          boxShadow: '0 0 0 rgba(201,112,74,0)',
+          duration: 0.7,
+          ease: 'elastic.out(1.1, 0.4)',
+          transformPerspective: 600,
+        });
+        gsap.to(inner, { x: 0, y: 0, duration: 0.7, ease: 'elastic.out(1.1, 0.4)' });
+      }
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+    return () => window.removeEventListener('mousemove', onMouseMove);
+  }, []);
+
+  return (
+    <a
+      ref={wrapRef}
+      href={href}
+      target={target}
+      rel={rel}
+      className={className}
+      style={{ ...style, display: 'inline-flex', willChange: 'transform' }}
+    >
+      <span ref={innerRef} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', willChange: 'transform' }}>
+        {children}
+      </span>
+    </a>
+  );
+};
+
+/* ─── Particle Trail Canvas ───────────────────────────────────── */
+const ParticleTrail = ({ isDark }) => {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let mouseX = -1000, mouseY = -1000;
+    let lastX = -1000, lastY = -1000;
+    let frameId;
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const onMouseMove = (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      const speed = Math.sqrt((mouseX - lastX) ** 2 + (mouseY - lastY) ** 2);
+      const count = Math.min(Math.floor(speed * 0.5) + 1, 6);
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const vel = 0.5 + Math.random() * 2.5;
+        particles.push({
+          x: mouseX + (Math.random() - 0.5) * 8,
+          y: mouseY + (Math.random() - 0.5) * 8,
+          vx: Math.cos(angle) * vel * 0.6,
+          vy: Math.sin(angle) * vel * 0.6 - 1.2,
+          life: 1,
+          decay: 0.018 + Math.random() * 0.022,
+          size: 2 + Math.random() * 3.5,
+        });
+      }
+      lastX = mouseX; lastY = mouseY;
+    };
+    window.addEventListener('mousemove', onMouseMove);
+
+    const tick = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles = particles.filter(p => p.life > 0);
+      for (const p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.06; // gravity
+        p.vx *= 0.97; // drag
+        p.life -= p.decay;
+        const alpha = Math.max(0, p.life);
+        const r = Math.max(0, p.size * p.life);
+        const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 2);
+        grd.addColorStop(0, `rgba(201, 112, 74, ${alpha * 0.9})`);
+        grd.addColorStop(0.4, `rgba(232, 168, 124, ${alpha * 0.5})`);
+        grd.addColorStop(1, `rgba(201, 112, 74, 0)`);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r * 2, 0, Math.PI * 2);
+        ctx.fillStyle = grd;
+        ctx.fill();
+      }
+      frameId = requestAnimationFrame(tick);
+    };
+    tick();
+
+    return () => {
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('mousemove', onMouseMove);
+      cancelAnimationFrame(frameId);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: 'fixed', top: 0, left: 0,
+        width: '100%', height: '100%',
+        pointerEvents: 'none', zIndex: 9998,
+      }}
+    />
+  );
+};
+
+/* ─── Hero ────────────────────────────────────────────────────── */
 const Hero = ({ portfolio }) => {
   const { theme } = useContext(ThemeContext);
   const isDark = theme === 'dark';
   const heroRef = useRef(null);
-
+  const spotlightRef = useRef(null);
+  const nameBlockRef = useRef(null);
   const labelRef = useRef(null);
   const nameRef = useRef(null);
-  const subtitleRef = useRef(null);
+  const introRef = useRef(null);
   const buttonsRef = useRef(null);
-  const statsRef = useRef(null);
-  const decorRef = useRef(null);
+  const statsBarRef = useRef(null);
 
-  // Mouse-tracking parallax state
+  // Orb parallax refs
   const mouse = useRef({ x: 0, y: 0 });
   const orb1 = useRef({ x: 0, y: 0 });
   const orb2 = useRef({ x: 0, y: 0 });
@@ -25,325 +187,319 @@ const Hero = ({ portfolio }) => {
   const orb2Ref = useRef(null);
   const orb3Ref = useRef(null);
 
-  // Mouse parallax animation loop
+  /* ── Cursor spotlight + orb parallax ── */
   useEffect(() => {
+    const heroEl = heroRef.current;
+    if (!heroEl) return;
+
     const onMouseMove = (e) => {
-      // Normalize mouse to -1..1
+      // Spotlight
+      if (spotlightRef.current) {
+        spotlightRef.current.style.left = `${e.clientX}px`;
+        spotlightRef.current.style.top = `${e.clientY}px`;
+      }
+      // Orb parallax
       mouse.current.x = (e.clientX / window.innerWidth - 0.5) * 2;
       mouse.current.y = (e.clientY / window.innerHeight - 0.5) * 2;
+
+      // 3D name block tilt
+      if (nameBlockRef.current) {
+        const rect = heroEl.getBoundingClientRect();
+        const rx = ((e.clientY - rect.top) / rect.height - 0.5) * -14;
+        const ry = ((e.clientX - rect.left) / rect.width - 0.5) * 14;
+        gsap.to(nameBlockRef.current, {
+          rotateX: rx, rotateY: ry,
+          duration: 0.6, ease: 'power2.out',
+          transformPerspective: 800,
+        });
+      }
     };
-    window.addEventListener('mousemove', onMouseMove);
+
+    heroEl.addEventListener('mousemove', onMouseMove);
 
     let frameId;
     const lerp = (a, b, t) => a + (b - a) * t;
-
     const tick = () => {
-      // Orb 1 — follows cursor strongly (main glow)
-      orb1.current.x = lerp(orb1.current.x, mouse.current.x * 80, 0.04);
-      orb1.current.y = lerp(orb1.current.y, mouse.current.y * 60, 0.04);
-
-      // Orb 2 — follows cursor in opposite direction (parallax depth)
-      orb2.current.x = lerp(orb2.current.x, mouse.current.x * -50, 0.03);
-      orb2.current.y = lerp(orb2.current.y, mouse.current.y * -40, 0.03);
-
-      // Orb 3 — subtle follow
-      orb3.current.x = lerp(orb3.current.x, mouse.current.x * 35, 0.025);
-      orb3.current.y = lerp(orb3.current.y, mouse.current.y * 30, 0.025);
-
-      if (orb1Ref.current) {
-        orb1Ref.current.style.transform = `translate(calc(-20% + ${orb1.current.x}px), calc(-50% + ${orb1.current.y}px))`;
-      }
-      if (orb2Ref.current) {
-        orb2Ref.current.style.transform = `translate(${orb2.current.x}px, ${orb2.current.y}px)`;
-      }
-      if (orb3Ref.current) {
-        orb3Ref.current.style.transform = `translate(${orb3.current.x}px, ${orb3.current.y}px)`;
-      }
-
+      orb1.current.x = lerp(orb1.current.x, mouse.current.x * 70, 0.04);
+      orb1.current.y = lerp(orb1.current.y, mouse.current.y * 55, 0.04);
+      orb2.current.x = lerp(orb2.current.x, mouse.current.x * -45, 0.03);
+      orb2.current.y = lerp(orb2.current.y, mouse.current.y * -35, 0.03);
+      orb3.current.x = lerp(orb3.current.x, mouse.current.x * 30, 0.025);
+      orb3.current.y = lerp(orb3.current.y, mouse.current.y * 25, 0.025);
+      if (orb1Ref.current) orb1Ref.current.style.transform = `translate(calc(-20% + ${orb1.current.x}px), calc(-50% + ${orb1.current.y}px))`;
+      if (orb2Ref.current) orb2Ref.current.style.transform = `translate(${orb2.current.x}px, ${orb2.current.y}px)`;
+      if (orb3Ref.current) orb3Ref.current.style.transform = `translate(${orb3.current.x}px, ${orb3.current.y}px)`;
       frameId = requestAnimationFrame(tick);
     };
     tick();
 
     return () => {
-      window.removeEventListener('mousemove', onMouseMove);
+      heroEl.removeEventListener('mousemove', onMouseMove);
       cancelAnimationFrame(frameId);
     };
   }, []);
 
-  // GSAP entrance animations
+  /* ── GSAP entrance animations ── */
   useEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.fromTo(decorRef.current,
-        { opacity: 0, scale: 0.8 },
-        { opacity: 1, scale: 1, delay: 0.1, duration: 2.5, ease: 'power3.out' }
-      );
-      gsap.fromTo(labelRef.current,
-        { opacity: 0, x: -30 },
-        { opacity: 1, x: 0, delay: 0.3, duration: 1, ease: 'power4.out' }
-      );
-      gsap.fromTo(nameRef.current,
-        { opacity: 0, y: 80, filter: 'blur(16px)' },
-        { opacity: 1, y: 0, filter: 'blur(0px)', delay: 0.5, duration: 1.2, ease: 'power4.out' }
-      );
-      gsap.fromTo(subtitleRef.current,
-        { opacity: 0, x: -20 },
-        { opacity: 1, x: 0, delay: 0.9, duration: 1, ease: 'power4.out' }
-      );
-      gsap.fromTo(buttonsRef.current,
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, delay: 1.1, duration: 1, ease: 'power4.out' }
-      );
-      gsap.fromTo(statsRef.current,
-        { opacity: 0, x: 20 },
-        { opacity: 1, x: 0, delay: 1.3, duration: 1, ease: 'power4.out' }
-      );
+      const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+      tl.fromTo(labelRef.current, { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 1 }, 0.3)
+        .fromTo(nameRef.current, { opacity: 0, y: 80, filter: 'blur(20px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.3 }, 0.5)
+        .fromTo(introRef.current, { opacity: 0, x: 50, filter: 'blur(10px)' }, { opacity: 1, x: 0, filter: 'blur(0px)', duration: 1.1 }, 0.8)
+        .fromTo(buttonsRef.current, { opacity: 0, y: 25 }, { opacity: 1, y: 0, duration: 1 }, 1.1)
+        .fromTo(statsBarRef.current, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.9 }, 1.4);
 
-      // Subtle floating animation for orbs
-      gsap.to('.hero-orb-1', {
-        y: -30, x: 15, duration: 6, repeat: -1, yoyo: true, ease: 'sine.inOut'
+      // Floating micro-line animation
+      gsap.to('.hero-float-line', {
+        y: -8, duration: 3, repeat: -1, yoyo: true, ease: 'sine.inOut', stagger: 0.4
       });
-      gsap.to('.hero-orb-2', {
-        y: 25, x: -20, duration: 8, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: 1
-      });
-      gsap.to('.hero-orb-3', {
-        y: -20, x: 10, duration: 7, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: 2
-      });
+
+      // Name gradient shimmer
+      gsap.fromTo('.hero-name-accent',
+        { backgroundPosition: '0% 50%' },
+        { backgroundPosition: '200% 50%', duration: 4, repeat: -1, ease: 'none' }
+      );
     }, heroRef);
-
     return () => ctx.revert();
   }, []);
 
   return (
-    <section ref={heroRef} id="hero" className="relative h-screen w-full flex items-center overflow-hidden bg-[var(--bg)]">
-
-      {/* === PREMIUM BACKGROUND === */}
-      <div ref={decorRef} className="absolute inset-0 pointer-events-none" style={{ zIndex: 0 }}>
-
-        {/* Large ambient glow — center-right */}
-        <div
-          ref={orb1Ref}
-          style={{
-            width: '60vw',
-            height: '60vw',
-            top: '50%',
-            left: '45%',
-            transform: 'translate(-20%, -50%)',
-            background: isDark
-              ? 'radial-gradient(circle, rgba(201,112,74,0.14) 0%, rgba(56,25,50,0.05) 60%, transparent 80%)'
-              : 'radial-gradient(circle, rgba(201,112,74,0.12) 0%, rgba(255,243,230,0.05) 60%, transparent 80%)',
-            borderRadius: '50%',
-            filter: 'blur(40px)',
-            transition: 'transform 0.1s linear',
-          }}
-        />
-
-        {/* Secondary smaller glow — top-left */}
-        <div
-          ref={orb2Ref}
-          style={{
-            position: 'absolute',
-            width: '30vw',
-            height: '30vw',
-            top: '10%',
-            left: '10%',
-            background: isDark
-              ? 'radial-gradient(circle, rgba(150, 60, 120, 0.12) 0%, transparent 70%)'
-              : 'radial-gradient(circle, rgba(201,112,74,0.10) 0%, transparent 70%)',
-            borderRadius: '50%',
-            filter: 'blur(50px)',
-          }}
-        />
-
-        {/* Tertiary glow — bottom-right */}
-        <div
-          ref={orb3Ref}
-          style={{
-            position: 'absolute',
-            width: '25vw',
-            height: '25vw',
-            bottom: '5%',
-            right: '5%',
-            background: isDark
-              ? 'radial-gradient(circle, rgba(201,112,74,0.10) 0%, transparent 70%)'
-              : 'radial-gradient(circle, rgba(150, 60, 120, 0.08) 0%, transparent 70%)',
-            borderRadius: '50%',
-            filter: 'blur(60px)',
-          }}
-        />
-
-        {/* Single elegant thin horizontal accent line */}
-        <div
-          className="absolute"
-          style={{
-            top: '50%',
-            left: 0,
-            right: 0,
-            height: '1px',
-            background: isDark
-              ? 'linear-gradient(90deg, transparent 0%, rgba(201,112,74,0.08) 30%, rgba(201,112,74,0.15) 50%, rgba(201,112,74,0.08) 70%, transparent 100%)'
-              : 'linear-gradient(90deg, transparent 0%, rgba(201,112,74,0.06) 30%, rgba(201,112,74,0.12) 50%, rgba(201,112,74,0.06) 70%, transparent 100%)',
-          }}
-        />
-      </div>
-
-      {/* Watermark — vertical right, slim column, never overlaps stats */}
+    <section
+      ref={heroRef}
+      id="hero"
+      className="relative h-screen w-full flex flex-col overflow-hidden bg-[var(--bg)]"
+      style={{ cursor: 'none' }}
+    >
+      {/* ── Cursor spotlight ── */}
       <div
-        className="absolute top-1/2 -translate-y-1/2 pointer-events-none select-none hidden lg:block"
-        style={{ zIndex: 0, right: '-2%' }}
-      >
-        <span
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: '10vw',
-            fontWeight: 700,
-            fontStyle: 'italic',
-            color: 'var(--fg-06)',
-            letterSpacing: '-0.02em',
-            lineHeight: 0.85,
-            writingMode: 'vertical-rl',
-            textOrientation: 'mixed',
-            display: 'block',
-            userSelect: 'none',
-          }}
-        >
-          SAMI
-        </span>
+        ref={spotlightRef}
+        className="pointer-events-none fixed"
+        style={{
+          zIndex: 50,
+          width: '400px',
+          height: '400px',
+          borderRadius: '50%',
+          transform: 'translate(-50%, -50%)',
+          background: isDark
+            ? 'radial-gradient(circle, rgba(201,112,74,0.07) 0%, transparent 65%)'
+            : 'radial-gradient(circle, rgba(201,112,74,0.05) 0%, transparent 65%)',
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* ── Real cursor dot ── */}
+      <CursorDot />
+
+      {/* ── Ambient orbs ── */}
+      <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+        <div ref={orb1Ref} style={{
+          position: 'absolute', width: '55vw', height: '55vw',
+          top: '50%', left: '45%',
+          background: isDark
+            ? 'radial-gradient(circle, rgba(201,112,74,0.13) 0%, rgba(56,25,50,0.04) 60%, transparent 80%)'
+            : 'radial-gradient(circle, rgba(201,112,74,0.11) 0%, transparent 80%)',
+          borderRadius: '50%', filter: 'blur(50px)',
+        }} />
+        <div ref={orb2Ref} style={{
+          position: 'absolute', width: '28vw', height: '28vw',
+          top: '8%', left: '8%',
+          background: isDark
+            ? 'radial-gradient(circle, rgba(140, 50, 110, 0.11) 0%, transparent 70%)'
+            : 'radial-gradient(circle, rgba(201,112,74,0.09) 0%, transparent 70%)',
+          borderRadius: '50%', filter: 'blur(55px)',
+        }} />
+        <div ref={orb3Ref} style={{
+          position: 'absolute', width: '22vw', height: '22vw',
+          bottom: '12%', right: '8%',
+          background: isDark
+            ? 'radial-gradient(circle, rgba(201,112,74,0.09) 0%, transparent 70%)'
+            : 'radial-gradient(circle, rgba(140,50,110,0.07) 0%, transparent 70%)',
+          borderRadius: '50%', filter: 'blur(60px)',
+        }} />
       </div>
 
-      {/* Main Content */}
-      <div className="relative w-full container mx-auto px-6 lg:px-12" style={{ zIndex: 10 }}>
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-12">
+      {/* ── Floating decorative lines ── */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 1 }}>
+        <div className="hero-float-line absolute w-px" style={{ height: '120px', left: '8%', top: '20%', background: 'linear-gradient(to bottom, transparent, var(--accent), transparent)', opacity: 0.3 }} />
+        <div className="hero-float-line absolute w-px" style={{ height: '80px', left: '50%', top: '10%', background: 'linear-gradient(to bottom, transparent, var(--fg-20), transparent)', opacity: 0.2 }} />
+        <div className="hero-float-line absolute w-px" style={{ height: '100px', right: '12%', top: '30%', background: 'linear-gradient(to bottom, transparent, var(--accent), transparent)', opacity: 0.2 }} />
+        {/* Dot grid — just 3x3, very subtle */}
+        {[...Array(9)].map((_, i) => (
+          <div key={i} className="hero-float-line absolute rounded-full" style={{
+            width: '3px', height: '3px',
+            left: `${15 + (i % 3) * 12}%`,
+            top: `${15 + Math.floor(i / 3) * 12}%`,
+            backgroundColor: 'var(--accent)',
+            opacity: 0.12,
+          }} />
+        ))}
+      </div>
 
-          {/* Left: Text Block */}
-          <div className="max-w-3xl">
-            <p
-              ref={labelRef}
-              className="uppercase mb-8 font-semibold flex items-center gap-4"
-              style={{ color: 'var(--accent)', fontSize: '0.75rem', letterSpacing: '0.3em' }}
-            >
-              <span className="w-12 h-px bg-[var(--accent)] inline-block" />
-              FULL STACK DEVELOPER
-            </p>
+      {/* ── SAMI watermark ── */}
+      <div className="absolute top-1/2 -translate-y-1/2 pointer-events-none select-none hidden lg:block"
+        style={{ zIndex: 0, right: '-1%' }}>
+        <span style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: '10vw', fontWeight: 700, fontStyle: 'italic',
+          color: 'var(--fg-06)', letterSpacing: '-0.02em',
+          lineHeight: 0.85, writingMode: 'vertical-rl',
+          textOrientation: 'mixed', display: 'block', userSelect: 'none',
+        }}>SAMI</span>
+      </div>
 
-            <h1
-              ref={nameRef}
-              className="mb-8"
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 'clamp(3.5rem, 10vw, 9rem)',
-                letterSpacing: '-0.03em',
-                lineHeight: 0.95,
-              }}
-            >
+      {/* ── MAIN CONTENT ── */}
+      <div className="relative flex flex-col flex-1 justify-center container mx-auto px-6 lg:px-12" style={{ zIndex: 10 }}>
+        {/* Label */}
+        <p ref={labelRef} className="uppercase mb-6 font-semibold flex items-center gap-4"
+          style={{ color: 'var(--accent)', fontSize: '0.7rem', letterSpacing: '0.35em' }}>
+          <span className="w-10 h-px bg-[var(--accent)] inline-block" />
+          FULL STACK DEVELOPER · AI ENTHUSIAST
+        </p>
+
+        {/* Two-column grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-20 items-center">
+
+          {/* LEFT: Name */}
+          <div ref={nameRef}>
+            <h1 style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 'clamp(3.5rem, 9vw, 8.5rem)',
+              letterSpacing: '-0.03em', lineHeight: 0.92,
+            }}>
               <span style={{ fontWeight: 300, display: 'block' }} className="text-[var(--fg-40)]">Shaik</span>
-              <span style={{
-                fontWeight: 700,
-                fontStyle: 'italic',
-                display: 'block',
-                background: isDark
-                  ? 'linear-gradient(135deg, #fff3e6 0%, #e8a87c 50%, #c9704a 100%)'
-                  : 'linear-gradient(135deg, #381932 0%, #7a2d5a 55%, #c9704a 100%)',
-                WebkitBackgroundClip: 'text',
-                color: 'transparent'
-              }}>
+              <span
+                className="hero-name-accent"
+                style={{
+                  fontWeight: 700, fontStyle: 'italic', display: 'block',
+                  background: isDark
+                    ? 'linear-gradient(90deg, #fff3e6, #e8a87c, #c9704a, #e8a87c, #fff3e6)'
+                    : 'linear-gradient(90deg, #381932, #7a2d5a, #c9704a, #7a2d5a, #381932)',
+                  backgroundSize: '300% auto',
+                  WebkitBackgroundClip: 'text', color: 'transparent',
+                }}
+              >
                 Abdul Sami
               </span>
             </h1>
-
-            <div
-              ref={subtitleRef}
-              className="ml-1 pl-6 mb-12"
-              style={{ borderLeft: '2px solid var(--accent)' }}
-            >
-              <p
-                style={{ color: 'var(--fg-60)', fontSize: '1.1rem', lineHeight: 1.7 }}
-                className="font-medium max-w-lg"
-              >
-                Crafting full-stack web applications & AI-powered systems.
-                <br />
-                <span className="text-[var(--fg-40)]">B.Tech CSE · IIIT Dharwad '27</span>
-              </p>
-            </div>
-
-            <div ref={buttonsRef} className="flex flex-col sm:flex-row gap-4">
-              <a
-                href="#projects"
-                style={{ background: 'linear-gradient(135deg, #c9704a, #9b3d1e)', color: '#fff3e6' }}
-                className="group relative px-8 py-4 font-bold rounded-full overflow-hidden transition-transform hover:scale-105 text-sm uppercase tracking-[0.15em]"
-              >
-                <span className="relative z-10 flex items-center gap-2">
-                  View Projects <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </span>
-              </a>
-
-              <a
-                href="/resume.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ borderColor: 'var(--border)', color: 'var(--fg)' }}
-                className="px-8 py-4 bg-transparent border font-bold rounded-full hover:bg-[var(--fg-06)] transition-all flex items-center gap-2 justify-center text-sm uppercase tracking-[0.15em]"
-              >
-                <Download className="w-4 h-4" /> Resume
-              </a>
+            {/* Location */}
+            <div className="flex items-center gap-2 mt-5" style={{ color: 'var(--fg-40)' }}>
+              <MapPin size={13} />
+              <span style={{ fontSize: '0.78rem', letterSpacing: '0.08em' }}>Proddatur, Andhra Pradesh · IIIT Dharwad '27</span>
             </div>
           </div>
 
-          {/* Right: Stats Strip — fixed width so it never squishes or overlaps */}
-          <div
-            ref={statsRef}
-            className="flex lg:flex-col items-center lg:items-end gap-8 lg:gap-10 shrink-0"
-            style={{ minWidth: '120px' }}
-          >
-            <div className="flex flex-col items-center lg:items-end">
-              <span
-                className="text-[var(--fg)] leading-none"
-                style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 4vw, 3.5rem)', fontWeight: 700 }}
-              >
-                {FALLBACK_PROJECTS.length}
-              </span>
-              <span className="text-[var(--fg-40)] mt-1" style={{ fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
-                Projects
-              </span>
+          {/* RIGHT: Intro + buttons */}
+          <div ref={introRef} className="flex flex-col gap-8">
+            <div className="relative pl-6" style={{ borderLeft: '2px solid var(--accent)' }}>
+              <div className="flex items-center gap-2 mb-4">
+                <Sparkles size={13} style={{ color: 'var(--accent)' }} />
+                <span style={{ fontSize: '0.62rem', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--accent)', fontWeight: 700 }}>About me</span>
+              </div>
+              <p style={{ color: 'var(--fg-60)', fontSize: 'clamp(0.95rem, 1.1vw, 1.05rem)', lineHeight: 1.85, fontWeight: 400 }}>
+                Hi there! I'm a Computer Science student at{' '}
+                <span style={{ color: 'var(--fg)', fontWeight: 600 }}>IIIT Dharwad</span>, passionate about turning ideas into real, working products. I build full-stack web applications and AI-powered systems — from sleek UIs to intelligent backends.
+              </p>
+              <p className="mt-4" style={{ color: 'var(--fg-40)', fontSize: '0.88rem', lineHeight: 1.7 }}>
+                Currently in my{' '}
+                <span style={{ color: 'var(--accent)', fontWeight: 600 }}>4th year</span>{' '}
+                — actively seeking opportunities to build, contribute, and grow with ambitious teams.
+              </p>
             </div>
 
-            <div className="h-px w-10 lg:w-16 lg:h-px bg-[var(--border-sub)]" />
-
-            <div className="flex flex-col items-center lg:items-end">
-              <span
-                className="text-[var(--fg)] leading-none"
-                style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 4vw, 3.5rem)', fontWeight: 700 }}
+            {/* Magnetic Buttons */}
+            <div ref={buttonsRef} className="flex flex-wrap gap-4">
+              <MagneticBtn
+                href="#projects"
+                style={{ background: 'linear-gradient(135deg, #c9704a, #9b3d1e)', color: '#fff3e6' }}
+                className="group px-7 py-3.5 font-bold rounded-full text-sm uppercase tracking-[0.15em] flex items-center gap-2 cursor-none"
               >
-                2+
-              </span>
-              <span className="text-[var(--fg-40)] mt-1" style={{ fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
-                Years
-              </span>
+                View Projects <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </MagneticBtn>
+              <MagneticBtn
+                href="/resume.pdf" target="_blank" rel="noopener noreferrer"
+                style={{ borderColor: 'var(--border)', color: 'var(--fg)', border: '1px solid' }}
+                className="px-7 py-3.5 bg-transparent font-bold rounded-full hover:bg-[var(--fg-06)] transition-all flex items-center gap-2 text-sm uppercase tracking-[0.15em] cursor-none"
+              >
+                <Download className="w-4 h-4" /> Resume
+              </MagneticBtn>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── BOTTOM STATS BAR ── */}
+      <div ref={statsBarRef} className="relative w-full" style={{ zIndex: 10, borderTop: '1px solid var(--border-sub)' }}>
+        <div className="container mx-auto px-6 lg:px-12">
+          <div className="flex flex-wrap items-center justify-between gap-4 py-5">
+            {/* Project count */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: '2.2rem', fontWeight: 700, color: 'var(--fg)', lineHeight: 1 }}>
+                  {FALLBACK_PROJECTS.length}
+                </span>
+                <span style={{ fontSize: '0.58rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--fg-40)', lineHeight: 1.4 }}>
+                  Public<br />Projects
+                </span>
+              </div>
+              <div className="w-px h-8 bg-[var(--border-sub)]" />
+              {/* Scroll hint */}
+              <div className="hidden md:flex items-center gap-2" style={{ color: 'var(--fg-20)' }}>
+                <ArrowDown size={14} className="animate-bounce" />
+                <span style={{ fontSize: '0.6rem', letterSpacing: '0.25em', textTransform: 'uppercase' }}>Scroll to explore</span>
+              </div>
             </div>
 
-            <div className="h-px w-10 lg:w-16 lg:h-px bg-[var(--border-sub)]" />
-
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-3 w-3">
+            {/* Open to work */}
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="relative flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: 'var(--accent)' }}></span>
-                <span className="relative inline-flex rounded-full h-3 w-3" style={{ backgroundColor: 'var(--accent)' }}></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5" style={{ backgroundColor: 'var(--accent)' }}></span>
               </span>
-              <span style={{ fontSize: '0.65rem', letterSpacing: '0.2em', color: 'var(--accent)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '0.65rem', letterSpacing: '0.2em', color: 'var(--accent)', textTransform: 'uppercase', fontWeight: 600 }}>
                 Open to Work
               </span>
             </div>
           </div>
-
         </div>
       </div>
-
-      {/* Bottom scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2" style={{ zIndex: 10 }}>
-        <div className="w-px h-8 bg-[var(--fg-20)] animate-pulse" />
-        <span className="text-[var(--fg-20)]" style={{ fontSize: '0.6rem', letterSpacing: '0.3em', textTransform: 'uppercase' }}>
-          Scroll
-        </span>
-      </div>
     </section>
+  );
+};
+
+/* ─── Custom cursor dot (small, visible) ──────────────────────── */
+const CursorDot = () => {
+  const dotRef = useRef(null);
+  const pos = useRef({ x: 0, y: 0 });
+  const cur = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const move = (e) => { pos.current = { x: e.clientX, y: e.clientY }; };
+    window.addEventListener('mousemove', move);
+
+    let frameId;
+    const lerp = (a, b, t) => a + (b - a) * t;
+    const tick = () => {
+      cur.current.x = lerp(cur.current.x, pos.current.x, 0.12);
+      cur.current.y = lerp(cur.current.y, pos.current.y, 0.12);
+      if (dotRef.current) {
+        dotRef.current.style.transform = `translate(${cur.current.x - 6}px, ${cur.current.y - 6}px)`;
+      }
+      frameId = requestAnimationFrame(tick);
+    };
+    tick();
+
+    return () => { window.removeEventListener('mousemove', move); cancelAnimationFrame(frameId); };
+  }, []);
+
+  return (
+    <div ref={dotRef} className="fixed pointer-events-none" style={{
+      zIndex: 9999, top: 0, left: 0,
+      width: '12px', height: '12px',
+      borderRadius: '50%',
+      backgroundColor: 'var(--accent)',
+      opacity: 0.8,
+      mixBlendMode: 'screen',
+    }} />
   );
 };
 
