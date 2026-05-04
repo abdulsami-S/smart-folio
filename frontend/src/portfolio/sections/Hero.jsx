@@ -139,7 +139,7 @@ const Hero = ({ portfolio }) => {
   }, []);
 
   return (
-    <section ref={heroRef} className="relative h-screen w-full flex flex-col items-center justify-center text-center overflow-hidden bg-[var(--bg)]">
+    <section ref={heroRef} id="hero" className="relative h-screen w-full flex flex-col items-center justify-center text-center overflow-hidden bg-[var(--bg)]">
       {/* 3D Canvas */}
       <canvas
         ref={canvasRef}
@@ -185,7 +185,7 @@ const Hero = ({ portfolio }) => {
 
         <h1 
           ref={nameRef}
-          style={{ fontSize: 'clamp(3.5rem, 9vw, 8rem)', letterSpacing: '-0.03em', lineHeight: 1 }}
+          style={{ fontSize: 'clamp(3.5rem, 9vw, 8rem)', letterSpacing: '-0.03em', lineHeight: 1, fontFamily: 'var(--font-display)' }}
           className="mb-6 flex flex-wrap justify-center gap-x-4"
         >
           <span style={{ fontWeight: 300 }} className="text-[var(--fg)]">Shaik</span>
@@ -240,12 +240,12 @@ const Hero = ({ portfolio }) => {
           className="flex items-center justify-center gap-6 sm:gap-10 text-sm sm:text-base font-bold text-[var(--fg-40)]"
         >
           <div className="flex flex-col items-center">
-            <span className="text-[var(--fg)] text-xl">10+</span>
+            <span className="text-[var(--fg)] text-xl" style={{ fontFamily: 'var(--font-display)' }}>10+</span>
             <span style={{ fontSize: '0.7rem', letterSpacing: '0.15em' }}>PROJECTS</span>
           </div>
           <div className="h-8 w-px bg-[var(--border-sub)]"></div>
           <div className="flex flex-col items-center">
-            <span className="text-[var(--fg)] text-xl">2+</span>
+            <span className="text-[var(--fg)] text-xl" style={{ fontFamily: 'var(--font-display)' }}>2+</span>
             <span style={{ fontSize: '0.7rem', letterSpacing: '0.15em' }}>YEARS CODING</span>
           </div>
           <div className="h-8 w-px bg-[var(--border-sub)]"></div>

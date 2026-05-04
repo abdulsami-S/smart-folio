@@ -69,7 +69,7 @@ const Contact = ({ portfolio }) => {
           <div className="flex flex-col justify-between">
             <div ref={headingRef}>
               <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--accent)] mb-6 block">05 // Contact</span>
-              <h2 className="text-6xl md:text-8xl font-black leading-[1.1] tracking-tighter">
+              <h2 className="text-6xl md:text-8xl font-black leading-[1.1] tracking-tighter" style={{ fontFamily: 'var(--font-display)' }}>
                 <div className="text-[var(--fg)]">Let's Build</div>
                 <div className="text-[var(--fg)]">Something</div>
                 <div className="text-[var(--accent)] drop-shadow-[0_0_15px_rgba(201,112,74,0.5)]">Together.</div>

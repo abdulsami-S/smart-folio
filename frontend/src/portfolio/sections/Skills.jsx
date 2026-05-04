@@ -130,7 +130,7 @@ const Skills = () => {
         <p className="text-[var(--accent)] text-[0.8rem] tracking-[0.2em] font-bold uppercase mb-2">
           02 // EXPERTISE
         </p>
-        <h2 className="text-[var(--fg)] text-[clamp(2rem,4vw,3.5rem)] font-black tracking-tighter leading-tight">
+        <h2 className="text-[var(--fg)] text-[clamp(2rem,4vw,3.5rem)] font-black tracking-tighter leading-tight" style={{ fontFamily: 'var(--font-display)' }}>
           Core Arsenal.
         </h2>
       </div>

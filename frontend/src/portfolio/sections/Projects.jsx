@@ -93,6 +93,8 @@ const Projects = ({ projects }) => {
   const isDark = theme === 'dark';
 
   useEffect(() => {
+    if (!sectionRef.current) return;
+    
     const ctx = gsap.context(() => {
       gsap.fromTo(
         sectionRef.current.querySelector('.projects-header'),
@@ -136,7 +138,7 @@ const Projects = ({ projects }) => {
           <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--accent)] mb-4 block">
             03 // Work
           </span>
-          <h2 className="text-5xl md:text-7xl font-black text-[var(--fg)]">
+          <h2 className="text-5xl md:text-7xl font-black text-[var(--fg)]" style={{ fontFamily: 'var(--font-display)' }}>
             Selected Work.
           </h2>
           <div className="w-[100px] h-[1px] bg-[var(--accent)] mt-6" />

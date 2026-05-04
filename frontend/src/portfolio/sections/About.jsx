@@ -124,7 +124,7 @@ const About = ({ portfolio }) => {
               <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--accent)] mb-4 block">
                 01 // Discover
               </span>
-              <h2 className="text-5xl md:text-7xl font-black text-[var(--fg)]">About Me.</h2>
+              <h2 className="text-5xl md:text-7xl font-black text-[var(--fg)]" style={{ fontFamily: 'var(--font-display)' }}>About Me.</h2>
               <div className="w-[100px] h-[1px] bg-[var(--accent)] mt-6" />
             </div>
 

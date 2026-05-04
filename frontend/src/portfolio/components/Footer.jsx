@@ -23,8 +23,8 @@ const Footer = () => {
         {/* Live IST Clock */}
         <div className="flex flex-col items-center">
           <div 
-            className="font-black font-mono tracking-[-0.02em]"
-            style={{ fontSize: '3.5rem', lineHeight: 1, color: 'var(--fg)' }}
+            className="font-black tracking-[-0.02em]"
+            style={{ fontSize: '3.5rem', lineHeight: 1, color: 'var(--fg)', fontFamily: 'var(--font-display)' }}
           >
             {clock}
           </div>

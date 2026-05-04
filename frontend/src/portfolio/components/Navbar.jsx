@@ -1,7 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ThemeToggle from './ThemeToggle';
-import { Menu, X } from 'lucide-react';
+import {
+  Menu, X,
+  Home, User, Code2, LayoutGrid,
+  Briefcase, Mail
+} from 'lucide-react';
 import { gsap } from 'gsap';
+
+const navItems = [
+  { name: 'Home',       icon: Home,        href: '#hero' },
+  { name: 'About',      icon: User,        href: '#about' },
+  { name: 'Skills',     icon: Code2,       href: '#skills' },
+  { name: 'Projects',   icon: LayoutGrid,  href: '#projects' },
+  { name: 'Experience', icon: Briefcase,   href: '#experience' },
+  { name: 'Contact',    icon: Mail,        href: '#contact' },
+];
 
 const Navbar = ({ portfolio }) => {
   const [scrolled, setScrolled] = useState(false);
@@ -9,16 +22,9 @@ const Navbar = ({ portfolio }) => {
   const [activeSection, setActiveSection] = useState('hero');
   const navRef = useRef(null);
 
-  const navLinks = [
-    { name: 'About', href: '#about' },
-    { name: 'Skills', href: '#skills' },
-    { name: 'Projects', href: '#projects' },
-    { name: 'Experience', href: '#experience' },
-  ];
-
+  // GSAP entrance
   useEffect(() => {
     if (!navRef.current) return;
-    
     gsap.fromTo(navRef.current, {
       y: -80, opacity: 0
     }, {
@@ -28,24 +34,42 @@ const Navbar = ({ portfolio }) => {
     });
   }, []);
 
+  // Scroll detection
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
-
-      const sections = ['hero', ...navLinks.map(l => l.href.substring(1)), 'contact'];
-      let current = 'hero';
-      for (const section of sections) {
-        const element = document.getElementById(section);
-        if (element && window.scrollY >= element.offsetTop - 300) {
-          current = section;
-        }
-      }
-      if (window.scrollY < 100) current = 'hero';
-      setActiveSection(current);
     };
-
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // IntersectionObserver for active section
+  useEffect(() => {
+    const sectionIds = navItems.map(item => item.href.substring(1));
+    const observers = [];
+
+    sectionIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              setActiveSection(id);
+            }
+          });
+        },
+        {
+          rootMargin: '-40% 0px -55% 0px',
+          threshold: 0,
+        }
+      );
+      observer.observe(el);
+      observers.push(observer);
+    });
+
+    return () => observers.forEach(obs => obs.disconnect());
   }, []);
 
   const scrollTo = (e, href) => {
@@ -56,54 +80,64 @@ const Navbar = ({ portfolio }) => {
 
   return (
     <>
-      <nav 
+      <nav
         ref={navRef}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          scrolled 
-            ? 'py-4 border-b shadow-lg' 
+          scrolled
+            ? 'py-4 border-b shadow-lg'
             : 'py-6 bg-transparent border-b border-transparent'
         }`}
-        style={scrolled ? { 
+        style={scrolled ? {
           backgroundColor: 'color-mix(in srgb, var(--bg) 85%, transparent)',
           backdropFilter: 'blur(20px)',
           borderColor: 'var(--border-sub)'
         } : {}}
       >
         <div className="container mx-auto px-6 lg:px-12 flex justify-between items-center">
-          <a href="#hero" onClick={(e) => scrollTo(e, '#hero')} className="text-xl md:text-2xl font-black text-[var(--fg)] tracking-tight cursor-pointer relative z-50 group">
+          {/* Logo */}
+          <a
+            href="#hero"
+            onClick={(e) => scrollTo(e, '#hero')}
+            className="text-xl md:text-2xl font-bold text-[var(--fg)] tracking-tight cursor-pointer relative z-50 group"
+            style={{ fontFamily: 'var(--font-display)' }}
+          >
             Shaik Abdul Sami<span className="text-[var(--accent)] transition-colors duration-300">.</span>
           </a>
 
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-10">
-            <ul className="flex items-center gap-8">
-              {navLinks.map((link) => (
-                <li key={link.name} className="relative">
-                  <a 
-                    href={link.href}
-                    onClick={(e) => scrollTo(e, link.href)}
-                    className={`text-[11px] font-bold uppercase tracking-[0.2em] transition-colors cursor-pointer block py-2 ${
-                      activeSection === link.href.substring(1) ? 'text-[var(--fg)]' : 'text-[var(--fg-40)] hover:text-[var(--fg)]'
-                    }`}
-                  >
-                    {link.name}
-                    {activeSection === link.href.substring(1) && (
-                      <div 
-                        className="absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--accent)]"
-                      />
-                    )}
-                  </a>
-                </li>
-              ))}
-            </ul>
-            
+          {/* Desktop Icon Nav */}
+          <div className="hidden md:flex items-center gap-6">
+            <div className="flex items-center gap-1">
+              {navItems.map((item, i) => {
+                const Icon = item.icon;
+                const sectionId = item.href.substring(1);
+                const isActive = activeSection === sectionId;
+
+                return (
+                  <React.Fragment key={item.name}>
+                    {/* Separator before Contact */}
+                    {item.name === 'Contact' && <div className="nav-sep" />}
+
+                    <a
+                      href={item.href}
+                      onClick={(e) => scrollTo(e, item.href)}
+                      className={`nav-icon-item ${isActive ? 'active' : ''}`}
+                      aria-label={item.name}
+                    >
+                      <Icon size={18} strokeWidth={1.8} />
+                      <span className="nav-tooltip">{item.name}</span>
+                    </a>
+                  </React.Fragment>
+                );
+              })}
+            </div>
+
             <div className="flex items-center gap-6 border-l border-[var(--border)] pl-6">
               <ThemeToggle />
-              <a 
+              <a
                 href="#contact"
                 onClick={(e) => scrollTo(e, '#contact')}
                 className="text-[11px] font-bold uppercase tracking-[0.2em] px-5 py-2.5 rounded-full border text-[var(--fg)] hover:bg-[var(--accent)] hover:text-[#fff3e6] hover:border-[var(--accent)] transition-all cursor-pointer"
-                style={{ borderColor: 'var(--border)' }}
+                style={{ borderColor: 'var(--border)', fontFamily: 'var(--font-body)' }}
               >
                 Hire Me
               </a>
@@ -121,7 +155,7 @@ const Navbar = ({ portfolio }) => {
       </nav>
 
       {/* Mobile Menu */}
-      <div 
+      <div
         className={`fixed inset-0 z-40 flex flex-col justify-center items-center md:hidden transition-all duration-500 ease-in-out ${
           mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
@@ -131,8 +165,8 @@ const Navbar = ({ portfolio }) => {
         }}
       >
         <ul className="flex flex-col items-center gap-8">
-          {[...navLinks, { name: 'Contact', href: '#contact' }].map((link, i) => (
-            <li 
+          {navItems.map((link, i) => (
+            <li
               key={link.name}
               style={{
                 transitionDelay: mobileMenuOpen ? `${i * 0.1}s` : '0s',
@@ -141,7 +175,7 @@ const Navbar = ({ portfolio }) => {
                 transition: 'all 0.5s ease-out'
               }}
             >
-              <a 
+              <a
                 href={link.href}
                 onClick={(e) => scrollTo(e, link.href)}
                 className={`text-2xl font-black uppercase tracking-widest cursor-pointer ${

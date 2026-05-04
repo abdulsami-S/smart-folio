@@ -142,7 +142,7 @@ const Timeline = ({ timeline }) => {
         
         <div className="timeline-header mb-24 text-center md:text-left">
           <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--accent)] mb-4 block">04 // Journey</span>
-          <h2 className="text-5xl md:text-7xl font-black text-[var(--fg)]">
+          <h2 className="text-5xl md:text-7xl font-black text-[var(--fg)]" style={{ fontFamily: 'var(--font-display)' }}>
             Experience & Timeline.
           </h2>
           <div className="w-[100px] h-[1px] bg-[var(--accent)] mt-6 mx-auto md:mx-0"></div>
