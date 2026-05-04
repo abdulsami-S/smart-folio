@@ -65,14 +65,14 @@ const CustomCursor = () => {
         if (window.__cursorMode === 'view') {
           ring.style.width = '80px';
           ring.style.height = '80px';
-          ring.style.background = 'rgba(0,212,255,0.1)';
-          ring.style.borderColor = 'rgba(0,212,255,0.4)';
+          ring.style.background = 'color-mix(in srgb, var(--accent) 10%, transparent)';
+          ring.style.borderColor = 'color-mix(in srgb, var(--accent) 40%, transparent)';
           if (label) label.style.opacity = '1';
         } else {
           ring.style.width = '40px';
           ring.style.height = '40px';
           ring.style.background = 'transparent';
-          ring.style.borderColor = 'rgba(0,212,255,0.3)';
+          ring.style.borderColor = 'color-mix(in srgb, var(--accent) 30%, transparent)';
           if (label) label.style.opacity = '0';
         }
       }
@@ -90,7 +90,7 @@ const CustomCursor = () => {
         if (ring) {
           ring.style.width = '60px';
           ring.style.height = '60px';
-          ring.style.background = 'rgba(0,212,255,0.05)';
+          ring.style.background = 'color-mix(in srgb, var(--accent) 5%, transparent)';
         }
       }
     };
@@ -127,12 +127,12 @@ const CustomCursor = () => {
     <>
       <div 
         ref={ringRef}
-        className="fixed top-0 left-0 pointer-events-none z-[9999] rounded-full border-[var(--accent-cyan)] flex items-center justify-center transition-[width,height,background-color] duration-300 ease-out will-change-transform"
-        style={{ width: '40px', height: '40px', borderWidth: '1px' }}
+        className="fixed top-0 left-0 pointer-events-none z-[9999] rounded-full flex items-center justify-center transition-[width,height,background-color] duration-300 ease-out will-change-transform"
+        style={{ width: '40px', height: '40px', borderWidth: '1px', borderColor: 'var(--accent)' }}
       >
         <span 
           ref={labelRef}
-          className="text-[10px] font-bold text-[var(--accent-cyan)] tracking-widest uppercase transition-opacity duration-300"
+          className="text-[10px] font-bold text-[var(--accent)] tracking-widest uppercase transition-opacity duration-300"
           style={{ opacity: 0 }}
         >
           VIEW
@@ -140,8 +140,8 @@ const CustomCursor = () => {
       </div>
       <div 
         ref={dotRef}
-        className="fixed top-0 left-0 pointer-events-none z-[10000] rounded-full bg-[var(--accent-cyan)] will-change-transform"
-        style={{ width: '8px', height: '8px' }}
+        className="fixed top-0 left-0 pointer-events-none z-[10000] rounded-full will-change-transform"
+        style={{ width: '8px', height: '8px', backgroundColor: 'var(--accent)' }}
       />
     </>
   );

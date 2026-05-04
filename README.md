@@ -198,19 +198,11 @@ cd backend
 npm install
 ```
 
-Ensure your `backend/.env` file exists with the following variables:
-```env
-PORT=5000
-MONGO_URI=mongodb://localhost:27017/sami_portfolio
-JWT_SECRET=super_secret_jwt_key
-REFRESH_SECRET=super_refresh_secret
-JWT_EXPIRES_IN=15m
-REFRESH_EXPIRES_IN=7d
-ADMIN_USERNAME=sami
-ADMIN_PASSWORD=sami@admin2027
-NODE_ENV=development
-CLIENT_URL=http://localhost:5173
+Copy the provided example environment file to create your own `.env` file:
+```bash
+cp .env.example .env
 ```
+*(Make sure to open `backend/.env` and add your actual MongoDB Atlas URI and generate secure JWT secrets!)*
 
 Seed the database with initial data:
 ```bash
@@ -243,7 +235,9 @@ npm run dev
 | Method | Endpoint | What it does | Protected |
 |--------|----------|--------------|-----------|
 | `POST` | `/api/auth/login` | Authenticate admin & generate tokens | ❌ |
+| `POST` | `/api/auth/refresh`| Rotate access token via HttpOnly cookie | ❌ |
 | `POST` | `/api/auth/logout` | Clear refresh token cookies | ❌ |
+| `GET`  | `/api/auth/me`   | Verify session and get admin profile | ✅ |
 | `GET`  | `/api/portfolio` | Get main bio and social links | ❌ |
 | `PUT`  | `/api/portfolio` | Update main bio and social links | ✅ |
 | `GET`  | `/api/projects` | Get all visible projects | ❌ |

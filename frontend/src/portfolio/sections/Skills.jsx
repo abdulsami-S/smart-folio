@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useContext } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowUpRight } from 'lucide-react';
+import { ThemeContext } from '../../context/ThemeContext';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -49,6 +50,8 @@ const Skills = () => {
   const trackRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const { theme } = useContext(ThemeContext);
+  const isDark = theme === 'dark';
 
   useEffect(() => {
     const checkMobile = () => {
@@ -118,16 +121,16 @@ const Skills = () => {
     <section 
       ref={sectionRef} 
       id="skills"
-      className={`relative bg-[var(--bg-primary)] ${isMobile ? 'py-20 px-4' : 'h-screen overflow-hidden'}`}
+      className={`relative bg-[var(--bg)] ${isMobile ? 'py-20 px-4' : 'h-screen overflow-hidden'}`}
     >
       {/* HEADER */}
       <div 
         className={`fixed-header ${isMobile ? 'mb-12' : 'absolute top-12 left-20 z-20 pointer-events-none'}`}
       >
-        <p className="text-[var(--accent-cyan)] text-[0.8rem] tracking-[0.2em] font-bold uppercase mb-2">
+        <p className="text-[var(--accent)] text-[0.8rem] tracking-[0.2em] font-bold uppercase mb-2">
           02 // EXPERTISE
         </p>
-        <h2 className="text-white text-[clamp(2rem,4vw,3.5rem)] font-black tracking-tighter leading-tight">
+        <h2 className="text-[var(--fg)] text-[clamp(2rem,4vw,3.5rem)] font-black tracking-tighter leading-tight">
           Core Arsenal.
         </h2>
       </div>
@@ -149,12 +152,13 @@ const Skills = () => {
                 flex flex-col relative overflow-hidden
                 ${isMobile ? 'w-full min-h-[400px]' : 'w-[420px] h-[520px]'}
                 ${isActive 
-                  ? 'bg-gradient-to-br from-[#3730a3] via-[#4338ca] to-[#4f46e5] border-[rgba(255,255,255,0.2)] shadow-[0_0_0_1px_rgba(99,102,241,0.3),0_40px_100px_rgba(67,56,202,0.5),inset_0_1px_0_rgba(255,255,255,0.1)]' 
-                  : 'bg-[#0c0c18] border-[rgba(255,255,255,0.06)] scale-100'}
+                  ? (isDark ? 'bg-gradient-to-br from-[#4f2548] via-[#44203e] to-[#2d1228] shadow-[0_40px_100px_rgba(201,112,74,0.15)]' : 'bg-gradient-to-br from-[#eedfc8] via-[#e5d3b8] to-[#dcb79a] shadow-[0_40px_100px_rgba(201,112,74,0.15)]') 
+                  : 'bg-[var(--bg-card)] scale-100'}
               `}
               style={{
                 borderWidth: '1px',
                 borderStyle: 'solid',
+                borderColor: isActive ? 'var(--accent)' : 'var(--border)',
                 transform: isActive && !isMobile ? 'scale(1.04) translateY(-8px)' : 'none'
               }}
             >
@@ -164,19 +168,20 @@ const Skills = () => {
                   className="font-black leading-none"
                   style={{
                     fontSize: '5rem',
-                    color: isActive ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)'
+                    color: isActive ? 'var(--fg-20)' : 'var(--fg-06)'
                   }}
                 >
                   0{i + 1}
                 </span>
                 <ArrowUpRight 
-                  className={`w-8 h-8 transition-colors duration-500 ${isActive ? 'text-white' : 'text-white/20'}`} 
+                  className={`w-8 h-8 transition-colors duration-500`} 
+                  style={{ color: isActive ? 'var(--fg)' : 'var(--fg-20)' }}
                 />
               </div>
 
               <div className="mt-auto">
                 <h3 
-                  className={`text-white transition-all duration-500 mb-4`}
+                  className={`text-[var(--fg)] transition-all duration-500 mb-4`}
                   style={{
                     fontSize: isActive ? '1.6rem' : '1.5rem',
                     fontWeight: isActive ? 700 : 600
@@ -188,23 +193,23 @@ const Skills = () => {
                 <div 
                   className={`transition-all duration-500 overflow-hidden ${isActive ? 'opacity-100 max-h-[300px]' : 'opacity-0 max-h-0'}`}
                 >
-                  <p className="text-[rgba(255,255,255,0.65)] text-[0.9rem] leading-[1.7] mb-6">
+                  <p className="text-[var(--fg-60)] text-[0.9rem] leading-[1.7] mb-6">
                     {skill.description}
                   </p>
                   
-                  <div className="w-full h-px bg-[rgba(255,255,255,0.12)] mb-6"></div>
+                  <div className="w-full h-px bg-[var(--border-sub)] mb-6"></div>
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <h4 className="text-[0.65rem] text-white/40 font-bold uppercase tracking-widest mb-3">SERVICES</h4>
+                      <h4 className="text-[0.65rem] text-[var(--fg-40)] font-bold uppercase tracking-widest mb-3">SERVICES</h4>
                       <ul className="flex flex-col gap-2">
                         {skill.services.map((s, idx) => (
-                          <li key={idx} className="text-white text-[0.85rem] font-medium">• {s}</li>
+                          <li key={idx} className="text-[var(--fg)] text-[0.85rem] font-medium">• {s}</li>
                         ))}
                       </ul>
                     </div>
                     <div>
-                      <h4 className="text-[0.65rem] text-white/40 font-bold uppercase tracking-widest mb-3">TOOLS</h4>
+                      <h4 className="text-[0.65rem] text-[var(--fg-40)] font-bold uppercase tracking-widest mb-3">TOOLS</h4>
                       <div className="whitespace-pre-line text-[1.6rem] leading-[1.4] tracking-widest select-none">
                         {skill.tools}
                       </div>

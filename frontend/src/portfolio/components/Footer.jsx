@@ -17,19 +17,19 @@ const Footer = () => {
   }, []);
 
   return (
-    <footer className="w-full bg-[var(--bg-primary)] py-12 border-t border-[rgba(255,255,255,0.05)] text-center relative z-10">
+    <footer className="w-full bg-[var(--bg)] py-12 text-center relative z-10 border-t" style={{ borderColor: 'var(--border-sub)' }}>
       <div className="container mx-auto px-6 flex flex-col items-center justify-center gap-12">
         
         {/* Live IST Clock */}
         <div className="flex flex-col items-center">
           <div 
-            className="text-white font-black font-mono tracking-[-0.02em]"
-            style={{ fontSize: '3.5rem', lineHeight: 1 }}
+            className="font-black font-mono tracking-[-0.02em]"
+            style={{ fontSize: '3.5rem', lineHeight: 1, color: 'var(--fg)' }}
           >
             {clock}
           </div>
           <div 
-            className="mt-2 text-[rgba(255,255,255,0.3)] font-bold uppercase"
+            className="mt-2 font-bold uppercase text-[var(--fg-40)]"
             style={{ fontSize: '0.7rem', letterSpacing: '0.2em' }}
           >
             IST — IIIT DHARWAD, KARNATAKA
@@ -37,7 +37,7 @@ const Footer = () => {
         </div>
 
         {/* Footer Text */}
-        <div className="text-[rgba(255,255,255,0.3)] text-xs uppercase tracking-widest font-semibold border-t border-[rgba(255,255,255,0.05)] pt-8 w-full">
+        <div className="text-[var(--fg-40)] text-xs uppercase tracking-widest font-semibold border-t pt-8 w-full" style={{ borderColor: 'var(--border-sub)' }}>
           DESIGNED LIKE ANTIMATTER, BUILT BY SAMI.
         </div>
       </div>

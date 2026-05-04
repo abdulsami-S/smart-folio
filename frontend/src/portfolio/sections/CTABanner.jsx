@@ -1,12 +1,15 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useContext } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowRight } from 'lucide-react';
+import { ThemeContext } from '../../context/ThemeContext';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const CTABanner = () => {
   const bannerRef = useRef(null);
+  const { theme } = useContext(ThemeContext);
+  const isDark = theme === 'dark';
 
   useEffect(() => {
     if (!bannerRef.current) return;
@@ -39,26 +42,27 @@ const CTABanner = () => {
         className="relative w-full rounded-[24px] overflow-hidden"
         style={{
           padding: '80px',
-          background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #1e1b4b 100%)'
+          background: 'linear-gradient(135deg, var(--bg-2) 0%, var(--bg-card) 40%, var(--bg-2) 100%)',
+          border: '1px solid var(--border-sub)'
         }}
       >
         {/* Light Ray pseudo-element equivalent */}
         <div 
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: 'radial-gradient(ellipse at 75% 50%, rgba(139,92,246,0.35), transparent 65%)'
+            background: 'radial-gradient(ellipse at 75% 50%, color-mix(in srgb, var(--accent) 25%, transparent), transparent 65%)'
           }}
         />
 
         <div className="relative z-10 flex flex-col items-start">
-          <span className="text-[var(--accent-cyan)] uppercase tracking-widest text-sm font-bold mb-6">
+          <span className="text-[var(--accent)] uppercase tracking-widest text-sm font-bold mb-6">
             READY TO BUILD?
           </span>
           
-          <h2 className="text-white mb-2" style={{ fontSize: '2.5rem', fontWeight: 400, lineHeight: 1.2 }}>
+          <h2 className="text-[var(--fg)] mb-2" style={{ fontSize: '2.5rem', fontWeight: 400, lineHeight: 1.2 }}>
             We turn bold ideas into
           </h2>
-          <h2 className="text-white mb-8" style={{ fontSize: '2.5rem', fontWeight: 800, lineHeight: 1.2 }}>
+          <h2 className="text-[var(--fg)] mb-8" style={{ fontSize: '2.5rem', fontWeight: 800, lineHeight: 1.2 }}>
             powerful digital realities.
           </h2>
 
@@ -66,19 +70,23 @@ const CTABanner = () => {
             href="#contact"
             className="flex items-center gap-2 transition-colors duration-300 group"
             style={{
-              background: 'rgba(255,255,255,0.12)',
-              border: '1px solid rgba(255,255,255,0.25)',
-              color: 'white',
+              background: 'var(--fg-06)',
+              border: '1px solid var(--border)',
+              color: 'var(--fg)',
               padding: '16px 36px',
               borderRadius: '50px',
               backdropFilter: 'blur(10px)',
               marginTop: '32px'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.22)';
+              e.currentTarget.style.background = 'var(--accent)';
+              e.currentTarget.style.color = '#fff3e6';
+              e.currentTarget.style.borderColor = 'var(--accent)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.12)';
+              e.currentTarget.style.background = 'var(--fg-06)';
+              e.currentTarget.style.color = 'var(--fg)';
+              e.currentTarget.style.borderColor = 'var(--border)';
             }}
           >
             <span className="font-semibold text-lg">Let's work together</span>

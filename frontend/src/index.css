@@ -6,25 +6,44 @@
 
 @layer base {
   :root {
-    --bg-primary:    #04050f;
-    --bg-secondary:  #080a18;
-    --bg-card:       #0d0f1e;
-    --bg-card-hover: #111428;
-    --text-primary:  #ffffff;
-    --text-secondary: rgba(255,255,255,0.7);
-    --text-muted:    rgba(255,255,255,0.35);
-    --text-subtle:   rgba(255,255,255,0.15);
-    --accent-cyan:   #00d4ff;
-    --accent-purple: #a855f7;
-    --accent-indigo: #4f46e5;
-    --accent-green:  #06ffa5;
-    --border-subtle: rgba(255,255,255,0.06);
-    --border-default: rgba(255,255,255,0.1);
+    --accent:       #c9704a;
+    --accent-light: #e8a87c;
+    --accent-dark:  #9b3d1e;
+  }
+
+  [data-theme="dark"], .dark {
+    --bg:           #381932;
+    --bg-2:         #2d1228;
+    --bg-card:      #44203e;
+    --bg-card-hover:#4f2548;
+    --fg:           #fff3e6;
+    --fg-60:        rgba(255,243,230,0.6);
+    --fg-40:        rgba(255,243,230,0.4);
+    --fg-20:        rgba(255,243,230,0.2);
+    --fg-10:        rgba(255,243,230,0.1);
+    --fg-06:        rgba(255,243,230,0.06);
+    --border:       rgba(255,243,230,0.1);
+    --border-sub:   rgba(255,243,230,0.06);
+  }
+
+  [data-theme="light"], .light {
+    --bg:           #fff3e6;
+    --bg-2:         #f5e8d6;
+    --bg-card:      #eedfc8;
+    --bg-card-hover:#e5d3b8;
+    --fg:           #381932;
+    --fg-60:        rgba(56,25,50,0.6);
+    --fg-40:        rgba(56,25,50,0.4);
+    --fg-20:        rgba(56,25,50,0.2);
+    --fg-10:        rgba(56,25,50,0.1);
+    --fg-06:        rgba(56,25,50,0.06);
+    --border:       rgba(56,25,50,0.1);
+    --border-sub:   rgba(56,25,50,0.06);
   }
 
   body {
-    background: var(--bg-primary);
-    color: var(--text-primary);
+    background: var(--bg);
+    color: var(--fg);
     font-family: 'Inter', -apple-system, sans-serif;
     overflow-x: hidden;
   }
@@ -37,10 +56,10 @@
     width: 3px; 
   }
   ::-webkit-scrollbar-track { 
-    background: #04050f; 
+    background: var(--bg); 
   }
   ::-webkit-scrollbar-thumb { 
-    background: #4f46e5; 
+    background: #c9704a; 
     border-radius: 2px; 
   }
 }
@@ -80,7 +99,7 @@
   }
 
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-[var(--accent-cyan)] via-[var(--accent-purple)] to-[var(--accent-indigo)];
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[var(--accent)] via-[var(--accent-light)] to-[var(--accent-dark)];
   }
 }
 
