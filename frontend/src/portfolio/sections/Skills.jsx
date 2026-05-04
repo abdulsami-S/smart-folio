@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState, useContext } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ArrowUpRight } from 'lucide-react';
 import { ThemeContext } from '../../context/ThemeContext';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -11,37 +10,31 @@ const skillData = [
     category: "Backend",
     description: "Robust server-side systems and REST APIs built for scale and performance.",
     services: ["Flask", "Node.js", "REST APIs"],
-    tools: "⚡🔧\n🌐🔗",
   },
   {
     category: "Data & ML",
     description: "Machine learning pipelines and geospatial analysis for real-world AI applications.",
     services: ["Scikit-learn", "GeoPandas", "NumPy", "Pandas", "Rasterio"],
-    tools: "🤖📊\n🧠🗺️",
   },
   {
     category: "Databases",
     description: "Data storage and management across relational and real-time systems.",
     services: ["MySQL", "SQLite", "Firebase"],
-    tools: "🗄️🔥\n💾📋",
   },
   {
     category: "Frontend",
     description: "Modern responsive interfaces built with React and vanilla JavaScript.",
     services: ["React.js", "Leaflet.js", "Vanilla JS", "Responsive Design"],
-    tools: "⚛️🎨\n📱✨",
   },
   {
     category: "Languages",
     description: "Core programming languages for web apps, ML models and systems.",
     services: ["Python", "JavaScript", "C++", "SQL", "HTML5", "CSS3"],
-    tools: "🐍⚡\n🔤🖥️",
   },
   {
     category: "Tools",
     description: "Professional development workflow, version control and deployment.",
     services: ["Git", "GitHub", "VS Code", "Postman", "Linux"],
-    tools: "🐙💻\n🔨🐧",
   }
 ];
 
@@ -64,7 +57,6 @@ const Skills = () => {
 
   useEffect(() => {
     if (isMobile) {
-      // In mobile, just reveal everything, kill trigger if exists
       ScrollTrigger.getAll().forEach(t => {
         if (t.vars.trigger === sectionRef.current) t.kill();
       });
@@ -73,7 +65,6 @@ const Skills = () => {
 
     const section = sectionRef.current;
     const track = trackRef.current;
-
     if (!section || !track) return;
 
     const totalScroll = track.scrollWidth - window.innerWidth;
@@ -95,10 +86,7 @@ const Skills = () => {
           }
         }
       });
-      
-      // Global Animation Rule for section entrance (if needed)
-      // Since it's a pinned section, blur entrance might clash if applied to the whole section.
-      // We will apply it to the header instead.
+
       gsap.fromTo(section.querySelector('.fixed-header'), {
         opacity: 0, y: 60, filter: "blur(8px)"
       }, {
@@ -109,12 +97,9 @@ const Skills = () => {
           toggleActions: "play none none reverse"
         }
       });
-
     }, sectionRef);
 
-    return () => {
-      ctx.revert();
-    };
+    return () => { ctx.revert(); };
   }, [isMobile]);
 
   return (
@@ -124,14 +109,13 @@ const Skills = () => {
       className={`relative bg-[var(--bg)] ${isMobile ? 'py-20 px-4' : 'h-screen overflow-hidden'}`}
     >
       {/* HEADER */}
-      <div 
-        className={`fixed-header ${isMobile ? 'mb-12' : 'absolute top-12 left-20 z-20 pointer-events-none'}`}
-      >
+      <div className={`fixed-header ${isMobile ? 'mb-12' : 'absolute top-12 left-20 z-20 pointer-events-none'}`}>
         <p className="text-[var(--accent)] text-[0.8rem] tracking-[0.2em] font-bold uppercase mb-2">
           02 // EXPERTISE
         </p>
-        <h2 className="text-[var(--fg)] text-[clamp(2rem,4vw,3.5rem)] font-black tracking-tighter leading-tight" style={{ fontFamily: 'var(--font-display)' }}>
-          Core Arsenal.
+        <h2 className="text-[var(--fg)]" style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem,4vw,3.5rem)', lineHeight: 1, letterSpacing: '-0.02em' }}>
+          <span style={{ fontWeight: 300 }}>Core </span>
+          <span style={{ fontWeight: 700, fontStyle: 'italic', color: 'var(--accent)' }}>Arsenal.</span>
         </h2>
       </div>
 
@@ -148,72 +132,110 @@ const Skills = () => {
             <div 
               key={i}
               className={`
-                shrink-0 rounded-[20px] p-[36px] transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]
+                shrink-0 rounded-[20px] transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]
                 flex flex-col relative overflow-hidden
-                ${isMobile ? 'w-full min-h-[400px]' : 'w-[420px] h-[520px]'}
+                ${isMobile ? 'w-full' : 'w-[420px] h-auto min-h-[380px]'}
                 ${isActive 
-                  ? (isDark ? 'bg-gradient-to-br from-[#4f2548] via-[#44203e] to-[#2d1228] shadow-[0_40px_100px_rgba(201,112,74,0.15)]' : 'bg-gradient-to-br from-[#eedfc8] via-[#e5d3b8] to-[#dcb79a] shadow-[0_40px_100px_rgba(201,112,74,0.15)]') 
-                  : 'bg-[var(--bg-card)] scale-100'}
+                  ? (isDark 
+                    ? 'bg-gradient-to-br from-[#4f2548] via-[#44203e] to-[#2d1228] shadow-[0_40px_100px_rgba(201,112,74,0.15)]' 
+                    : 'bg-gradient-to-br from-[#eedfc8] via-[#e5d3b8] to-[#dcb79a] shadow-[0_40px_100px_rgba(201,112,74,0.15)]') 
+                  : 'bg-[var(--bg-card)]'}
               `}
               style={{
                 borderWidth: '1px',
                 borderStyle: 'solid',
-                borderColor: isActive ? 'var(--accent)' : 'var(--border)',
+                borderColor: isActive ? 'var(--accent)' : 'var(--border-sub)',
                 transform: isActive && !isMobile ? 'scale(1.04) translateY(-8px)' : 'none'
               }}
             >
-              {/* Top Row */}
-              <div className="flex justify-between items-start w-full">
-                <span 
-                  className="font-black leading-none"
-                  style={{
-                    fontSize: '5rem',
-                    color: isActive ? 'var(--fg-20)' : 'var(--fg-06)'
-                  }}
-                >
-                  0{i + 1}
-                </span>
-                <ArrowUpRight 
-                  className={`w-8 h-8 transition-colors duration-500`} 
-                  style={{ color: isActive ? 'var(--fg)' : 'var(--fg-20)' }}
-                />
-              </div>
+              <div className="flex flex-col justify-between h-full p-8">
 
-              <div className="mt-auto">
-                <h3 
-                  className={`text-[var(--fg)] transition-all duration-500 mb-4`}
-                  style={{
-                    fontSize: isActive ? '1.6rem' : '1.5rem',
-                    fontWeight: isActive ? 700 : 600
-                  }}
-                >
-                  {skill.category}
-                </h3>
-                
+                {/* Number + Category */}
+                <div>
+                  <div className="flex items-baseline gap-3 mb-4">
+                    <span 
+                      className="leading-none select-none"
+                      style={{
+                        fontFamily: 'var(--font-display)',
+                        fontSize: '3rem',
+                        fontWeight: 700,
+                        fontStyle: 'italic',
+                        color: isActive ? 'var(--fg-20)' : 'var(--fg-06)',
+                        transition: 'color 0.5s ease',
+                      }}
+                    >
+                      0{i + 1}
+                    </span>
+                    <h3 
+                      className="text-[var(--fg)] transition-all duration-500"
+                      style={{
+                        fontFamily: 'var(--font-display)',
+                        fontSize: '1.8rem',
+                        fontWeight: 700,
+                        fontStyle: 'italic',
+                        lineHeight: 1.1,
+                      }}
+                    >
+                      {skill.category}
+                    </h3>
+                  </div>
+                </div>
+
+                {/* Expandable Details — only visible when active */}
                 <div 
-                  className={`transition-all duration-500 overflow-hidden ${isActive ? 'opacity-100 max-h-[300px]' : 'opacity-0 max-h-0'}`}
+                  className={`transition-all duration-500 overflow-hidden ${isActive ? 'opacity-100 max-h-[400px]' : 'opacity-0 max-h-0'}`}
                 >
-                  <p className="text-[var(--fg-60)] text-[0.9rem] leading-[1.7] mb-6">
+                  {/* Accent line */}
+                  <div 
+                    className="h-[2px] mb-5 transition-all duration-500"
+                    style={{ 
+                      width: isActive ? '60px' : '30px',
+                      backgroundColor: isActive ? 'var(--accent)' : 'var(--border-sub)',
+                    }}
+                  />
+
+                  {/* Description */}
+                  <p 
+                    style={{ 
+                      fontSize: '0.95rem', 
+                      lineHeight: 1.75, 
+                      color: 'var(--fg-60)',
+                      fontWeight: 400,
+                    }}
+                  >
                     {skill.description}
                   </p>
+                </div>
+
+                {/* Tech Stack — bottom section */}
+                <div className={`transition-all duration-500 overflow-hidden ${isActive ? 'opacity-100 max-h-[400px]' : 'opacity-0 max-h-0'}`}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="h-px flex-1" style={{ backgroundColor: 'var(--border-sub)' }} />
+                    <span 
+                      className="text-[0.55rem] font-bold uppercase tracking-[0.25em]" 
+                      style={{ color: isActive ? 'var(--accent)' : 'var(--fg-40)' }}
+                    >
+                      Stack
+                    </span>
+                    <div className="h-px flex-1" style={{ backgroundColor: 'var(--border-sub)' }} />
+                  </div>
                   
-                  <div className="w-full h-px bg-[var(--border-sub)] mb-6"></div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <h4 className="text-[0.65rem] text-[var(--fg-40)] font-bold uppercase tracking-widest mb-3">SERVICES</h4>
-                      <ul className="flex flex-col gap-2">
-                        {skill.services.map((s, idx) => (
-                          <li key={idx} className="text-[var(--fg)] text-[0.85rem] font-medium">• {s}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="text-[0.65rem] text-[var(--fg-40)] font-bold uppercase tracking-widest mb-3">TOOLS</h4>
-                      <div className="whitespace-pre-line text-[1.6rem] leading-[1.4] tracking-widest select-none">
-                        {skill.tools}
-                      </div>
-                    </div>
+                  <div className="flex flex-wrap gap-2">
+                    {skill.services.map((s, idx) => (
+                      <span 
+                        key={idx} 
+                        className="text-[0.75rem] font-medium px-3.5 py-2 rounded-lg transition-all duration-300"
+                        style={{ 
+                          backgroundColor: isActive 
+                            ? 'color-mix(in srgb, var(--accent) 12%, transparent)' 
+                            : 'var(--fg-06)', 
+                          color: isActive ? 'var(--fg)' : 'var(--fg-60)', 
+                          border: `1px solid ${isActive ? 'color-mix(in srgb, var(--accent) 30%, transparent)' : 'var(--border-sub)'}`,
+                        }}
+                      >
+                        {s}
+                      </span>
+                    ))}
                   </div>
                 </div>
               </div>

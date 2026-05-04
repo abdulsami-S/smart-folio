@@ -36,7 +36,7 @@ const CTABanner = () => {
   }, []);
 
   return (
-    <section className="container mx-auto px-6 lg:px-12 w-full mb-20 relative z-10">
+    <section className="container mx-auto px-6 lg:px-12 w-full mb-20 relative z-10 py-8">
       <div 
         ref={bannerRef}
         className="relative w-full rounded-[24px] overflow-hidden"
@@ -59,11 +59,11 @@ const CTABanner = () => {
             READY TO BUILD?
           </span>
           
-          <h2 className="text-[var(--fg)] mb-2" style={{ fontSize: '2.5rem', fontWeight: 400, lineHeight: 1.2 }}>
+          <h2 className="text-[var(--fg)] mb-2" style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 300, lineHeight: 1.2 }}>
             We turn bold ideas into
           </h2>
-          <h2 className="text-[var(--fg)] mb-8" style={{ fontSize: '2.5rem', fontWeight: 800, lineHeight: 1.2 }}>
-            powerful digital realities.
+          <h2 className="text-[var(--fg)] mb-8" style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 700, fontStyle: 'italic', lineHeight: 1.2 }}>
+            powerful digital <span className="text-[var(--accent)]">realities.</span>
           </h2>
 
           <a 

@@ -55,10 +55,10 @@ const Contact = ({ portfolio }) => {
   };
 
   return (
-    <section id="contact" ref={sectionRef} className="py-32 relative overflow-hidden bg-[var(--bg)]" style={{ borderTop: '1px solid var(--border-sub)' }}>
+    <section id="contact" ref={sectionRef} className="py-40 relative overflow-hidden bg-[var(--bg)]" style={{ borderTop: '1px solid var(--border-sub)' }}>
       
       {/* Huge subtle background text */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[20vw] font-black whitespace-nowrap pointer-events-none select-none text-[var(--fg-06)]">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[20vw] whitespace-nowrap pointer-events-none select-none text-[var(--fg-06)]" style={{ fontFamily: 'var(--font-display)', fontWeight: 300, fontStyle: 'italic' }}>
         CONTACT
       </div>
 
@@ -68,21 +68,36 @@ const Contact = ({ portfolio }) => {
           {/* Left: Big CTA */}
           <div className="flex flex-col justify-between">
             <div ref={headingRef}>
-              <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--accent)] mb-6 block">05 // Contact</span>
-              <h2 className="text-6xl md:text-8xl font-black leading-[1.1] tracking-tighter" style={{ fontFamily: 'var(--font-display)' }}>
-                <div className="text-[var(--fg)]">Let's Build</div>
-                <div className="text-[var(--fg)]">Something</div>
-                <div className="text-[var(--accent)] drop-shadow-[0_0_15px_rgba(201,112,74,0.5)]">Together.</div>
+              <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--accent)] mb-8 block font-semibold">05 // Contact</span>
+              <h2 style={{ fontFamily: 'var(--font-display)', lineHeight: 1.05 }}>
+                <span 
+                  className="block text-[var(--fg)]" 
+                  style={{ fontSize: 'clamp(3rem, 7vw, 6rem)', fontWeight: 300 }}
+                >
+                  Let's Build
+                </span>
+                <span 
+                  className="block text-[var(--fg)]" 
+                  style={{ fontSize: 'clamp(3rem, 7vw, 6rem)', fontWeight: 300 }}
+                >
+                  Something
+                </span>
+                <span 
+                  className="block text-[var(--accent)] drop-shadow-[0_0_20px_rgba(201,112,74,0.4)]" 
+                  style={{ fontSize: 'clamp(3.5rem, 8vw, 7rem)', fontWeight: 700, fontStyle: 'italic' }}
+                >
+                  Together.
+                </span>
               </h2>
             </div>
 
             <div className="mt-20" ref={socialLinksRef}>
               <p className="text-sm uppercase tracking-[0.2em] text-[var(--fg-40)] mb-4">Drop a line</p>
               <a 
-                href={`mailto:${portfolio?.socials?.email || 'hello@example.com'}`} 
+                href={`mailto:${portfolio?.socials?.email || 'workwithsami07@gmail.com'}`} 
                 className="text-2xl md:text-4xl font-light text-[var(--fg)] hover:text-[var(--accent)] transition-colors duration-300 relative group inline-block cursor-pointer"
               >
-                {portfolio?.socials?.email || 'hello@example.com'}
+                {portfolio?.socials?.email || 'workwithsami07@gmail.com'}
                 <div className="absolute -bottom-2 left-0 w-0 h-[2px] bg-[var(--accent)] group-hover:w-full transition-all duration-500"></div>
               </a>
 

@@ -38,7 +38,7 @@ const Footer = () => {
 
         {/* Footer Text */}
         <div className="text-[var(--fg-40)] text-xs uppercase tracking-widest font-semibold border-t pt-8 w-full" style={{ borderColor: 'var(--border-sub)' }}>
-          DESIGNED LIKE ANTIMATTER, BUILT BY SAMI.
+          BUILT BY SAMI.
         </div>
       </div>
     </footer>

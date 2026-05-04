@@ -1,84 +1,72 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import { ArrowRight, Github, ExternalLink } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ThemeContext } from '../../context/ThemeContext';
 
+import { FALLBACK_PROJECTS } from '../data/projects';
+
 gsap.registerPlugin(ScrollTrigger);
 
-const PREVIEWS = [
-  {
-    icon: '🗺️',
-    title: 'GeoSafe AI',
-    desc: '~90% Accuracy',
-    badge: 'AI / GEOSPATIAL',
-  },
-  {
-    icon: '💎',
-    title: 'My-Jewellery',
-    desc: 'E-Commerce',
-    badge: 'WEB APP',
-  },
-  {
-    icon: '🧠',
-    title: 'NLP Benchmark',
-    desc: '3 Libraries',
-    badge: 'ML / NLP',
-  },
-  {
-    icon: '📅',
-    title: 'EventEase',
-    desc: 'Real-time',
-    badge: 'WEB APP',
-  }
-];
+const ProjectCard = ({ project, index, isDark }) => {
+  const cardRef = useRef(null);
+  const [isHovered, setIsHovered] = useState(false);
 
-const ProjectItem = ({ project, index, setHoveredIndex }) => {
+  useEffect(() => {
+    if (!cardRef.current) return;
+    const ctx = gsap.context(() => {
+      gsap.fromTo(cardRef.current, {
+        opacity: 0, y: 50, filter: "blur(6px)"
+      }, {
+        opacity: 1, y: 0, filter: "blur(0px)",
+        duration: 0.9, delay: index * 0.12,
+        ease: "power4.out",
+        scrollTrigger: { trigger: cardRef.current, start: "top 85%" }
+      });
+    });
+    return () => ctx.revert();
+  }, [index]);
+
+  const fallback = FALLBACK_PROJECTS[index] || FALLBACK_PROJECTS[0];
+  const badge = project.badge || fallback.badge;
+  const image = project.image || fallback.image;
+  const githubLink = project.github || fallback.github;
+
   return (
     <div
-      className="group relative border-t py-12 transition-colors duration-300 ease-in-out cursor-pointer overflow-hidden px-6"
-      style={{ borderColor: 'var(--border-sub)' }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--accent) 5%, transparent)';
-        window.__cursorMode = 'view';
-        setHoveredIndex(index);
+      ref={cardRef}
+      className="group relative rounded-[20px] overflow-hidden border transition-all duration-500 cursor-pointer flex flex-col"
+      style={{ 
+        borderColor: isHovered ? 'var(--accent)' : 'var(--border-sub)',
+        transform: isHovered ? 'translateY(-6px)' : 'translateY(0)',
+        boxShadow: isHovered ? '0 30px 80px rgba(201,112,74,0.12)' : 'none',
       }}
-      onMouseLeave={(e) => {
-        window.__cursorMode = 'default';
-        e.currentTarget.style.backgroundColor = 'transparent';
-        setHoveredIndex(null);
-      }}
+      onMouseEnter={() => { setIsHovered(true); }}
+      onMouseLeave={() => { setIsHovered(false); }}
+      onClick={() => githubLink && window.open(githubLink, '_blank', 'noopener,noreferrer')}
     >
-      <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-        <div className="flex items-center gap-6">
-          <span className="text-4xl md:text-6xl font-black transition-colors duration-300 select-none group-hover:text-[var(--accent)] text-[var(--fg-10)]">
-            0{index + 1}
-          </span>
-          <div>
-            <h3 className="text-2xl md:text-4xl font-black text-[var(--fg)] transition-transform duration-300 ease-in-out group-hover:translate-x-2">
-              {project.title}
-            </h3>
-            <div className="flex flex-wrap gap-2 mt-4">
-              {project.techStack.slice(0, 3).map((tech, i) => (
-                <span
-                  key={i}
-                  className="text-[0.65rem] font-medium px-2 py-1 rounded-md transition-colors duration-300 uppercase tracking-widest"
-                  style={{ backgroundColor: 'var(--fg-06)', color: 'var(--fg-60)' }}
-                >
-                  {tech}
-                </span>
-              ))}
-            </div>
+      <div className="relative w-full overflow-hidden" style={{ aspectRatio: '16 / 10' }}>
+        <img src={image} alt={project.title} className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" loading="lazy" />
+        <div className="absolute inset-0" style={{ background: isDark ? 'linear-gradient(to top, #2d1228 0%, rgba(45,18,40,0.4) 40%, transparent 100%)' : 'linear-gradient(to top, #fff3e6 0%, rgba(255,243,230,0.4) 40%, transparent 100%)' }} />
+        <div className="absolute top-4 left-4 z-10">
+          <span className="text-[0.55rem] font-bold tracking-[0.2em] uppercase px-3 py-1.5 rounded-full backdrop-blur-md" style={{ color: '#fff3e6', backgroundColor: 'rgba(201,112,74,0.7)' }}>{badge}</span>
+        </div>
+        <div className="absolute top-4 right-4 z-10">
+          <div className="w-9 h-9 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1 group-hover:-translate-y-1 backdrop-blur-md" style={{ backgroundColor: 'rgba(201,112,74,0.7)' }}>
+            <ArrowUpRight size={15} className="text-[#fff3e6]" />
           </div>
         </div>
-
-        <div className="flex items-center justify-end">
-          <div className="relative overflow-hidden w-10 h-10 flex items-center justify-center">
-            <ArrowRight
-              size={24}
-              className="transition-all duration-300 ease-in-out group-hover:text-[var(--accent)] group-hover:translate-x-[8px] absolute text-[var(--fg-20)]"
-            />
-          </div>
+      </div>
+      <div className="p-7 pt-5 flex flex-col flex-1" style={{ backgroundColor: 'var(--bg-card)' }}>
+        <div className="flex items-baseline gap-3 mb-3">
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', fontWeight: 600, fontStyle: 'italic', color: 'var(--fg-20)' }}>0{index + 1}</span>
+          <h3 className="text-[var(--fg)] group-hover:text-[var(--accent)] transition-colors duration-300" style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.3rem, 2vw, 1.6rem)', fontWeight: 700, lineHeight: 1.2 }}>{project.title}</h3>
+        </div>
+        <p className="text-[var(--fg-60)] text-[0.85rem] leading-relaxed mb-5 line-clamp-2">{project.description}</p>
+        <div className="flex flex-wrap gap-1.5 mt-auto">
+          {(project.techStack || []).slice(0, 5).map((tech, i) => (
+            <span key={i} className="text-[0.58rem] font-medium px-2 py-0.5 rounded uppercase tracking-[0.12em]" style={{ backgroundColor: 'var(--fg-06)', color: 'var(--fg-40)', border: '1px solid var(--border-sub)' }}>{tech}</span>
+          ))}
         </div>
       </div>
     </div>
@@ -86,111 +74,36 @@ const ProjectItem = ({ project, index, setHoveredIndex }) => {
 };
 
 const Projects = ({ projects }) => {
-  const [hoveredIndex, setHoveredIndex] = useState(null);
   const sectionRef = useRef(null);
-  const previewRef = useRef(null);
   const { theme } = useContext(ThemeContext);
   const isDark = theme === 'dark';
+  const displayProjects = (projects && projects.length > 0) ? projects.map((p, i) => ({ ...FALLBACK_PROJECTS[i], ...p })) : FALLBACK_PROJECTS;
 
   useEffect(() => {
     if (!sectionRef.current) return;
-    
     const ctx = gsap.context(() => {
-      gsap.fromTo(
-        sectionRef.current.querySelector('.projects-header'),
-        { opacity: 0, y: 60, filter: "blur(8px)" },
-        { 
-          opacity: 1, 
-          y: 0, 
-          filter: "blur(0px)", 
-          duration: 1, 
-          ease: "power4.out",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 75%",
-            toggleActions: "play none none reverse"
-          }
-        }
-      );
+      gsap.fromTo(sectionRef.current.querySelector('.projects-header'), { opacity: 0, y: 60, filter: "blur(8px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 1, ease: "power4.out", scrollTrigger: { trigger: sectionRef.current, start: "top 75%", toggleActions: "play none none reverse" } });
     }, sectionRef);
     return () => ctx.revert();
   }, []);
 
-  useEffect(() => {
-    if (previewRef.current && hoveredIndex !== null) {
-      gsap.fromTo(previewRef.current,
-        { opacity: 0, scale: 0.95 },
-        { opacity: 1, scale: 1, duration: 0.4, ease: "power2.out" }
-      );
-    }
-  }, [hoveredIndex]);
-
-  if (!projects || projects.length === 0) return null;
-
-  const currentPreview = hoveredIndex !== null && PREVIEWS[hoveredIndex] 
-    ? PREVIEWS[hoveredIndex] 
-    : null;
-
   return (
-    <section ref={sectionRef} id="projects" className="py-32 relative z-10 bg-[var(--bg)]">
+    <section ref={sectionRef} id="projects" className="py-40 relative z-10 bg-[var(--bg)]">
       <div className="container mx-auto px-6 lg:px-12">
-        <div className="projects-header mb-20">
-          <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--accent)] mb-4 block">
-            03 // Work
-          </span>
-          <h2 className="text-5xl md:text-7xl font-black text-[var(--fg)]" style={{ fontFamily: 'var(--font-display)' }}>
-            Selected Work.
-          </h2>
-          <div className="w-[100px] h-[1px] bg-[var(--accent)] mt-6" />
+        <div className="projects-header mb-20 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+          <div>
+            <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--accent)] mb-4 block font-semibold">03 // Work</span>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(3rem, 6vw, 5.5rem)', fontWeight: 700, lineHeight: 1, letterSpacing: '-0.02em' }}>
+              <span className="text-[var(--fg)]" style={{ fontWeight: 300 }}>Selected </span>
+              <span style={{ fontStyle: 'italic', color: 'var(--accent)' }}>Work.</span>
+            </h2>
+          </div>
+          <p className="text-[var(--fg-40)] max-w-sm text-sm leading-relaxed md:text-right">A curated collection of projects spanning AI, full-stack development, and data science.</p>
         </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-[55fr_45fr] gap-[60px] items-start">
-          {/* Left: Project List */}
-          <div className="flex flex-col border-b" style={{ borderColor: 'var(--border-sub)' }}>
-            {projects.map((project, index) => (
-              <ProjectItem 
-                key={project._id} 
-                project={project} 
-                index={index} 
-                setHoveredIndex={setHoveredIndex}
-              />
-            ))}
-          </div>
-
-          {/* Right: Sticky Preview Panel */}
-          <div className="hidden lg:block sticky top-[120px] h-[500px] rounded-[20px] overflow-hidden border transition-colors duration-500 bg-[var(--bg-card)]" style={{ borderColor: 'var(--border-sub)' }}>
-            {currentPreview ? (
-              <div 
-                ref={previewRef}
-                className="w-full h-full flex flex-col items-center justify-center text-center p-8 relative"
-                style={{ background: isDark ? 'linear-gradient(145deg, #2d1228, #44203e)' : 'linear-gradient(145deg, #f0d4b0, #e0c090)' }}
-              >
-                <div className="absolute top-6 left-6">
-                  <span 
-                    className="text-[0.65rem] font-bold tracking-widest uppercase px-3 py-1 rounded-full border"
-                    style={{ borderColor: 'var(--accent)', color: 'var(--accent)', backgroundColor: 'color-mix(in srgb, var(--accent) 10%, transparent)' }}
-                  >
-                    {currentPreview.badge}
-                  </span>
-                </div>
-                
-                <span className="text-[5rem] mb-6 drop-shadow-2xl">{currentPreview.icon}</span>
-                <h3 className="text-3xl font-black text-[var(--fg)] mb-2">{currentPreview.title}</h3>
-                <p className="text-[var(--fg-60)] font-medium">{currentPreview.desc}</p>
-                
-                <div className="absolute bottom-6 right-6">
-                  <div className="w-10 h-10 rounded-full border flex items-center justify-center" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--fg-06)' }}>
-                    <ExternalLink size={16} className="text-[var(--fg)]" />
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center text-[var(--fg-20)]">
-                <span className="text-4xl mb-4">←</span>
-                <p className="font-medium tracking-widest uppercase text-sm">Hover a project</p>
-              </div>
-            )}
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8" style={{ gridAutoRows: '1fr' }}>
+          {displayProjects.map((project, index) => (
+            <ProjectCard key={project._id} project={project} index={index} isDark={isDark} />
+          ))}
         </div>
       </div>
     </section>

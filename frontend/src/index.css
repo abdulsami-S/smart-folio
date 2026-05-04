@@ -50,8 +50,7 @@
     overflow-x: hidden;
   }
   
-  html, body { cursor: none !important; }
-  a, button { cursor: none !important; }
+  /* Default browser cursor */
 
   /* Custom Webkit Scrollbar */
   ::-webkit-scrollbar { 
