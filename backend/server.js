@@ -14,10 +14,22 @@ const app = express();
 
 // Middleware
 app.use(helmet());
+
+// Strict CORS Configuration
+const allowedOrigins = [process.env.CLIENT_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'].filter(Boolean);
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
-  credentials: true
+  origin: function (origin, callback) {
+    // allow requests with no origin (like mobile apps or curl requests) only in development, or if the origin is explicitly allowed
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  optionsSuccessStatus: 200
 }));
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan('dev'));

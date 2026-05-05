@@ -8,14 +8,15 @@ const {
   toggleVisibility 
 } = require('../controllers/skills.controller');
 const { protect } = require('../middleware/auth');
+const { createSkillRules, updateSkillRules, idParamRules } = require('../middleware/validate');
 
 // Public route
 router.get('/', getSkills);
 
 // Protected routes
-router.post('/', protect, createSkill);
-router.put('/:id', protect, updateSkill);
-router.delete('/:id', protect, deleteSkill);
-router.patch('/:id/visibility', protect, toggleVisibility);
+router.post('/', protect, createSkillRules, createSkill);
+router.put('/:id', protect, updateSkillRules, updateSkill);
+router.delete('/:id', protect, idParamRules, deleteSkill);
+router.patch('/:id/visibility', protect, idParamRules, toggleVisibility);
 
 module.exports = router;

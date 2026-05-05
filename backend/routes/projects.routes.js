@@ -9,15 +9,16 @@ const {
   toggleVisibility 
 } = require('../controllers/projects.controller');
 const { protect } = require('../middleware/auth');
+const { createProjectRules, updateProjectRules, reorderRules, idParamRules } = require('../middleware/validate');
 
 // Public route (with different behavior based on auth status handled in controller)
 router.get('/', getProjects);
 
 // Protected routes
-router.post('/', protect, createProject);
-router.put('/:id', protect, updateProject);
-router.delete('/:id', protect, deleteProject);
-router.patch('/reorder', protect, reorderProjects);
-router.patch('/:id/visibility', protect, toggleVisibility);
+router.post('/', protect, createProjectRules, createProject);
+router.put('/:id', protect, updateProjectRules, updateProject);
+router.delete('/:id', protect, idParamRules, deleteProject);
+router.patch('/reorder', protect, reorderRules, reorderProjects);
+router.patch('/:id/visibility', protect, idParamRules, toggleVisibility);
 
 module.exports = router;
