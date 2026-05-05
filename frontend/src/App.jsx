@@ -42,8 +42,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 const PortfolioView = () => {
   const { portfolio, projects, skills, timeline, loading } = useContext(PortfolioContext);
-  const hasSeenIntro = sessionStorage.getItem('intro_shown') === 'true';
-  const [introComplete, setIntroComplete] = useState(hasSeenIntro);
+  const [introComplete, setIntroComplete] = useState(false);
 
   useEffect(() => {
     const lenis = new Lenis({

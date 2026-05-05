@@ -61,7 +61,6 @@ const IntroScreen = ({ onComplete }) => {
     // ── Master Timeline ──────────────────────────────────────
     const tl = gsap.timeline({
       onComplete: () => {
-        sessionStorage.setItem('intro_shown', 'true');
         stableComplete();
       },
     });
