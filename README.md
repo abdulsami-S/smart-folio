@@ -20,12 +20,12 @@
 
 <table>
   <tr>
-    <td align="center"><b>🎬 Cinematic Intro</b></td>
     <td align="center"><b>🌌 Hero Section</b></td>
+    <td align="center"><b>🚀 Skills Showcase</b></td>
   </tr>
   <tr>
-    <td><img src="https://raw.githubusercontent.com/abdulsami-S/smart-folio/main/assets/screenshots/hero.png" width="480" alt="Character Drawing Intro Animation"/></td>
-    <td><img src="https://raw.githubusercontent.com/abdulsami-S/smart-folio/main/assets/screenshots/skills.png" width="480" alt="Interactive Hero with Particle Trails"/></td>
+    <td><img src="https://raw.githubusercontent.com/abdulsami-S/smart-folio/main/assets/screenshots/hero.png" width="480" alt="Interactive Hero with Particle Trails"/></td>
+    <td><img src="https://raw.githubusercontent.com/abdulsami-S/smart-folio/main/assets/screenshots/skills.png" width="480" alt="Horizontal Pin Scroll Skills"/></td>
   </tr>
   <tr>
     <td align="center"><b>📂 Dynamic Projects Panel</b></td>
@@ -93,7 +93,9 @@ Think of this as a **digital business card on steroids**:
 | 🔐 **Two-Token JWT Auth** | Stateless, highly secure authentication using Access and HttpOnly Refresh tokens |
 | 🛡️ **XSS & CSRF Protection** | Tokens are stored properly in memory and strictly isolated cookies |
 | 🔑 **Password Hashing** | Bcrypt with 12 salt rounds ensures maximum database security |
-| ⏱️ **Rate Limiting** | Login endpoint is rate-limited to prevent brute-force attacks |
+| ⏱️ **Rate Limiting** | Login endpoint is rate-limited to 5 attempts per 15 minutes per IP |
+| ✅ **Input Validation** | All POST/PUT endpoints validated with express-validator (type, length, format checks) |
+| 🪖 **HTTP Security Headers** | Helmet.js sets 11+ security headers (HSTS, X-Frame-Options, CSP, etc.) |
 | 🗄️ **MongoDB Database** | Fast, flexible NoSQL schema using Mongoose ORM |
 
 ---
@@ -152,9 +154,11 @@ flowchart TD
 | **Particle Effects** | Canvas 2D API | High-performance cursor-following particle trail system |
 | **Smooth Scroll** | Lenis (@studio-freight) | Buttery smooth, lightweight scroll hijacking |
 | **Icons** | Lucide React | Consistent, lightweight icon library |
+| **Input Validation** | express-validator | Server-side validation and sanitization for all API endpoints |
 | **Backend** | Node.js + Express | Fast, JavaScript-native REST API |
 | **Database** | MongoDB + Mongoose | Flexible NoSQL document storage perfectly suited for CMS |
 | **Auth** | JWT + bcryptjs | Bulletproof, stateless secure authentication |
+| **Security Headers** | Helmet.js | Automatic HTTP security headers (HSTS, CSP, XSS filter, etc.) |
 
 ---
 
