@@ -89,8 +89,9 @@ const ParticleTrail = ({ isDark }) => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     let particles = [];
-    let mouseX = -1000, mouseY = -1000;
-    let lastX = -1000, lastY = -1000;
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    let lastX = mouseX, lastY = mouseY;
     let frameId;
 
     const resize = () => {
@@ -103,19 +104,22 @@ const ParticleTrail = ({ isDark }) => {
     const onMouseMove = (e) => {
       mouseX = e.clientX;
       mouseY = e.clientY;
-      const speed = Math.sqrt((mouseX - lastX) ** 2 + (mouseY - lastY) ** 2);
-      const count = Math.min(Math.floor(speed * 0.5) + 1, 6);
+      const dx = mouseX - lastX;
+      const dy = mouseY - lastY;
+      const speed = Math.sqrt(dx * dx + dy * dy);
+      // More particles on fast movement, min 1 on slow move
+      const count = Math.min(Math.floor(speed * 0.4) + 1, 5);
       for (let i = 0; i < count; i++) {
         const angle = Math.random() * Math.PI * 2;
-        const vel = 0.5 + Math.random() * 2.5;
+        const vel = 0.4 + Math.random() * 2.0;
         particles.push({
-          x: mouseX + (Math.random() - 0.5) * 8,
-          y: mouseY + (Math.random() - 0.5) * 8,
-          vx: Math.cos(angle) * vel * 0.6,
-          vy: Math.sin(angle) * vel * 0.6 - 1.2,
+          x: mouseX + (Math.random() - 0.5) * 6,
+          y: mouseY + (Math.random() - 0.5) * 6,
+          vx: Math.cos(angle) * vel * 0.5,
+          vy: Math.sin(angle) * vel * 0.5 - 0.8,
           life: 1,
-          decay: 0.018 + Math.random() * 0.022,
-          size: 2 + Math.random() * 3.5,
+          decay: 0.012 + Math.random() * 0.016,  // slower fade = longer trail
+          size: 2.5 + Math.random() * 4,
         });
       }
       lastX = mouseX; lastY = mouseY;
@@ -128,17 +132,18 @@ const ParticleTrail = ({ isDark }) => {
       for (const p of particles) {
         p.x += p.vx;
         p.y += p.vy;
-        p.vy += 0.06; // gravity
-        p.vx *= 0.97; // drag
+        p.vy += 0.04;  // gentle gravity
+        p.vx *= 0.98;  // soft air drag
         p.life -= p.decay;
         const alpha = Math.max(0, p.life);
         const r = Math.max(0, p.size * p.life);
-        const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 2);
-        grd.addColorStop(0, `rgba(201, 112, 74, ${alpha * 0.9})`);
-        grd.addColorStop(0.4, `rgba(232, 168, 124, ${alpha * 0.5})`);
-        grd.addColorStop(1, `rgba(201, 112, 74, 0)`);
+        // Outer soft halo
+        const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 2.5);
+        grd.addColorStop(0,   `rgba(232, 168, 124, ${alpha * 0.95})`);
+        grd.addColorStop(0.3, `rgba(201, 112,  74, ${alpha * 0.6})`);
+        grd.addColorStop(1,   `rgba(201, 112,  74, 0)`);
         ctx.beginPath();
-        ctx.arc(p.x, p.y, r * 2, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, r * 2.5, 0, Math.PI * 2);
         ctx.fillStyle = grd;
         ctx.fill();
       }
@@ -187,48 +192,66 @@ const Hero = ({ portfolio }) => {
   const orb2Ref = useRef(null);
   const orb3Ref = useRef(null);
 
-  /* ── Cursor spotlight + orb parallax ── */
+  /* ── Unified smooth animation loop ── */
   useEffect(() => {
     const heroEl = heroRef.current;
     if (!heroEl) return;
 
-    const onMouseMove = (e) => {
-      // Spotlight
-      if (spotlightRef.current) {
-        spotlightRef.current.style.left = `${e.clientX}px`;
-        spotlightRef.current.style.top = `${e.clientY}px`;
-      }
-      // Orb parallax
-      mouse.current.x = (e.clientX / window.innerWidth - 0.5) * 2;
-      mouse.current.y = (e.clientY / window.innerHeight - 0.5) * 2;
-
-      // 3D name block tilt
-      if (nameBlockRef.current) {
-        const rect = heroEl.getBoundingClientRect();
-        const rx = ((e.clientY - rect.top) / rect.height - 0.5) * -14;
-        const ry = ((e.clientX - rect.left) / rect.width - 0.5) * 14;
-        gsap.to(nameBlockRef.current, {
-          rotateX: rx, rotateY: ry,
-          duration: 0.6, ease: 'power2.out',
-          transformPerspective: 800,
-        });
-      }
+    // Raw mouse target (updated instantly on mousemove)
+    const target = { x: 0, y: 0, normX: 0, normY: 0 };
+    // Smoothed values (lerped each frame)
+    const smooth = {
+      spotX: window.innerWidth / 2,  spotY: window.innerHeight / 2,
+      orb1x: 0, orb1y: 0,
+      orb2x: 0, orb2y: 0,
+      orb3x: 0, orb3y: 0,
+      tiltX: 0, tiltY: 0,
     };
 
+    const onMouseMove = (e) => {
+      target.x = e.clientX;
+      target.y = e.clientY;
+      target.normX = (e.clientX / window.innerWidth  - 0.5) * 2;
+      target.normY = (e.clientY / window.innerHeight - 0.5) * 2;
+
+      // Tilt targets from hero bounds
+      const rect = heroEl.getBoundingClientRect();
+      target.tiltX = ((e.clientY - rect.top)  / rect.height - 0.5) * -12;
+      target.tiltY = ((e.clientX - rect.left) / rect.width  - 0.5) *  12;
+    };
     heroEl.addEventListener('mousemove', onMouseMove);
 
-    let frameId;
     const lerp = (a, b, t) => a + (b - a) * t;
+    let frameId;
+
     const tick = () => {
-      orb1.current.x = lerp(orb1.current.x, mouse.current.x * 70, 0.04);
-      orb1.current.y = lerp(orb1.current.y, mouse.current.y * 55, 0.04);
-      orb2.current.x = lerp(orb2.current.x, mouse.current.x * -45, 0.03);
-      orb2.current.y = lerp(orb2.current.y, mouse.current.y * -35, 0.03);
-      orb3.current.x = lerp(orb3.current.x, mouse.current.x * 30, 0.025);
-      orb3.current.y = lerp(orb3.current.y, mouse.current.y * 25, 0.025);
-      if (orb1Ref.current) orb1Ref.current.style.transform = `translate(calc(-20% + ${orb1.current.x}px), calc(-50% + ${orb1.current.y}px))`;
-      if (orb2Ref.current) orb2Ref.current.style.transform = `translate(${orb2.current.x}px, ${orb2.current.y}px)`;
-      if (orb3Ref.current) orb3Ref.current.style.transform = `translate(${orb3.current.x}px, ${orb3.current.y}px)`;
+      // Spotlight — very fast lerp so it feels responsive but not jumpy
+      smooth.spotX = lerp(smooth.spotX, target.x, 0.12);
+      smooth.spotY = lerp(smooth.spotY, target.y, 0.12);
+      if (spotlightRef.current) {
+        spotlightRef.current.style.left = `${smooth.spotX}px`;
+        spotlightRef.current.style.top  = `${smooth.spotY}px`;
+      }
+
+      // Orbs — different speeds for parallax depth
+      smooth.orb1x = lerp(smooth.orb1x, target.normX * 65, 0.025);
+      smooth.orb1y = lerp(smooth.orb1y, target.normY * 50, 0.025);
+      smooth.orb2x = lerp(smooth.orb2x, target.normX * -40, 0.018);
+      smooth.orb2y = lerp(smooth.orb2y, target.normY * -32, 0.018);
+      smooth.orb3x = lerp(smooth.orb3x, target.normX * 28, 0.014);
+      smooth.orb3y = lerp(smooth.orb3y, target.normY * 22, 0.014);
+      if (orb1Ref.current) orb1Ref.current.style.transform = `translate(calc(-20% + ${smooth.orb1x}px), calc(-50% + ${smooth.orb1y}px))`;
+      if (orb2Ref.current) orb2Ref.current.style.transform = `translate(${smooth.orb2x}px, ${smooth.orb2y}px)`;
+      if (orb3Ref.current) orb3Ref.current.style.transform = `translate(${smooth.orb3x}px, ${smooth.orb3y}px)`;
+
+      // 3D name tilt — slow, dreamy lerp
+      smooth.tiltX = lerp(smooth.tiltX, target.tiltX || 0, 0.04);
+      smooth.tiltY = lerp(smooth.tiltY, target.tiltY || 0, 0.04);
+      if (nameBlockRef.current) {
+        nameBlockRef.current.style.transform =
+          `perspective(900px) rotateX(${smooth.tiltX}deg) rotateY(${smooth.tiltY}deg)`;
+      }
+
       frameId = requestAnimationFrame(tick);
     };
     tick();
@@ -269,6 +292,15 @@ const Hero = ({ portfolio }) => {
       id="hero"
       className="relative h-screen w-full flex flex-col overflow-hidden bg-[var(--bg)]"
       style={{ cursor: 'none' }}
+      onMouseLeave={() => {
+        if (nameBlockRef.current) {
+          gsap.to(nameBlockRef.current, {
+            rotateX: 0, rotateY: 0,
+            duration: 0.8, ease: 'elastic.out(1, 0.5)',
+            transformPerspective: 800,
+          });
+        }
+      }}
     >
       {/* ── Cursor spotlight ── */}
       <div
@@ -289,6 +321,9 @@ const Hero = ({ portfolio }) => {
 
       {/* ── Real cursor dot ── */}
       <CursorDot />
+
+      {/* ── Particle trail canvas ── */}
+      <ParticleTrail isDark={isDark} />
 
       {/* ── Ambient orbs ── */}
       <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 0 }}>
@@ -359,9 +394,12 @@ const Hero = ({ portfolio }) => {
         {/* Two-column grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-20 items-center">
 
-          {/* LEFT: Name */}
-          <div ref={nameRef}>
-            <h1 style={{
+          {/* LEFT: Name — 3D tilt block */}
+          <div
+            ref={nameBlockRef}
+            style={{ willChange: 'transform', transformStyle: 'preserve-3d' }}
+          >
+            <h1 ref={nameRef} style={{
               fontFamily: 'var(--font-display)',
               fontSize: 'clamp(3.5rem, 9vw, 8.5rem)',
               letterSpacing: '-0.03em', lineHeight: 0.92,
@@ -469,8 +507,8 @@ const Hero = ({ portfolio }) => {
 /* ─── Custom cursor dot (small, visible) ──────────────────────── */
 const CursorDot = () => {
   const dotRef = useRef(null);
-  const pos = useRef({ x: 0, y: 0 });
-  const cur = useRef({ x: 0, y: 0 });
+  const pos = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+  const cur = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
 
   useEffect(() => {
     const move = (e) => { pos.current = { x: e.clientX, y: e.clientY }; };
@@ -479,10 +517,10 @@ const CursorDot = () => {
     let frameId;
     const lerp = (a, b, t) => a + (b - a) * t;
     const tick = () => {
-      cur.current.x = lerp(cur.current.x, pos.current.x, 0.12);
-      cur.current.y = lerp(cur.current.y, pos.current.y, 0.12);
+      cur.current.x = lerp(cur.current.x, pos.current.x, 0.18);
+      cur.current.y = lerp(cur.current.y, pos.current.y, 0.18);
       if (dotRef.current) {
-        dotRef.current.style.transform = `translate(${cur.current.x - 6}px, ${cur.current.y - 6}px)`;
+        dotRef.current.style.transform = `translate(${cur.current.x - 7}px, ${cur.current.y - 7}px)`;
       }
       frameId = requestAnimationFrame(tick);
     };
@@ -494,11 +532,12 @@ const CursorDot = () => {
   return (
     <div ref={dotRef} className="fixed pointer-events-none" style={{
       zIndex: 9999, top: 0, left: 0,
-      width: '12px', height: '12px',
+      width: '14px', height: '14px',
       borderRadius: '50%',
       backgroundColor: 'var(--accent)',
-      opacity: 0.8,
+      opacity: 0.85,
       mixBlendMode: 'screen',
+      boxShadow: '0 0 12px rgba(201, 112, 74, 0.6)',
     }} />
   );
 };

@@ -98,10 +98,18 @@ const Navbar = ({ portfolio }) => {
           <a
             href="#hero"
             onClick={(e) => scrollTo(e, '#hero')}
-            className="text-xl md:text-2xl font-bold text-[var(--fg)] tracking-tight cursor-pointer relative z-50 group"
+            className="flex flex-col leading-none cursor-pointer relative z-50 group"
             style={{ fontFamily: 'var(--font-display)' }}
           >
-            Shaik Abdul Sami<span className="text-[var(--accent)] transition-colors duration-300">.</span>
+            <span
+              className="text-[var(--fg-40)] group-hover:text-[var(--accent)] transition-colors duration-300"
+              style={{ fontSize: '0.55rem', letterSpacing: '0.3em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', fontWeight: 600 }}
+            >
+              Welcome to
+            </span>
+            <span className="text-xl md:text-2xl font-bold text-[var(--fg)] tracking-tight">
+              Sami's Portfolio<span className="text-[var(--accent)] transition-colors duration-300">.</span>
+            </span>
           </a>
 
           {/* Desktop Icon Nav */}

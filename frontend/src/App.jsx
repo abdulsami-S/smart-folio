@@ -23,6 +23,7 @@ import Projects from './portfolio/sections/Projects';
 import Timeline from './portfolio/sections/Timeline';
 import Contact from './portfolio/sections/Contact';
 import CTABanner from './portfolio/sections/CTABanner';
+import IntroScreen from './portfolio/components/IntroScreen';
 
 // Admin Components
 import AdminLogin from './admin/AdminLogin';
@@ -41,6 +42,10 @@ gsap.registerPlugin(ScrollTrigger);
 
 const PortfolioView = () => {
   const { portfolio, projects, skills, timeline, loading } = useContext(PortfolioContext);
+  const [introComplete, setIntroComplete] = useState(
+    // If intro was already shown this session, skip it immediately
+    () => Boolean(sessionStorage.getItem('intro_shown'))
+  );
 
   useEffect(() => {
     const lenis = new Lenis({
@@ -90,19 +95,27 @@ const PortfolioView = () => {
 
   return (
     <div className="relative bg-[var(--bg-primary)] min-h-screen overflow-hidden">
-      <Navbar portfolio={portfolio} />
-      <main>
-        <Hero portfolio={portfolio} />
-        <About portfolio={portfolio} />
-        <Skills skills={skills} />
-        <MarqueeTicker />
-        <Projects projects={projects} />
-        <Timeline timeline={timeline} />
-        <CTABanner />
-        <Contact portfolio={portfolio} />
-        <Footer />
-      </main>
-      <CustomCursor />
+      {/* Intro splash — renders on top, slides away when done */}
+      {!introComplete && (
+        <IntroScreen onComplete={() => setIntroComplete(true)} />
+      )}
+
+      {/* Portfolio — hidden until intro finishes to prevent flash */}
+      <div style={{ visibility: introComplete ? 'visible' : 'hidden' }}>
+        <Navbar portfolio={portfolio} />
+        <main>
+          <Hero portfolio={portfolio} />
+          <About portfolio={portfolio} />
+          <Skills skills={skills} />
+          <MarqueeTicker />
+          <Projects projects={projects} />
+          <Timeline timeline={timeline} />
+          <CTABanner />
+          <Contact portfolio={portfolio} />
+          <Footer />
+        </main>
+        <CustomCursor />
+      </div>
     </div>
   );
 };
