@@ -133,14 +133,41 @@ const seedDB = async () => {
     await Skill.insertMany(skillsData);
     console.log('Skills seeded.');
 
-    // 7. Seed Timeline entry
-    await Timeline.create({
-      title: "B.Tech in Computer Science and Engineering",
-      institution: "IIIT Dharwad · Dharwad, Karnataka",
-      duration: "2023 – 2027",
-      type: "Education",
-      order: 1
-    });
+    // 7. Seed Timeline entries
+    await Timeline.insertMany([
+      {
+        title: 'B.Tech Computer Science & Engineering',
+        institution: 'Indian Institute of Information Technology (IIIT), Dharwad',
+        duration: '2023 — Present',
+        description: 'Currently pursuing my B.Tech in CSE. Focusing on full-stack web development, Artificial Intelligence, and Machine Learning. Building scalable applications and geospatial AI systems.',
+        type: 'Education',
+        order: 1,
+      },
+      {
+        title: 'Joint Entrance Examination (JEE) Mains',
+        institution: 'National Testing Agency',
+        duration: '2023',
+        description: 'Secured an impressive 95.539 percentile. Achieved a General Rank of 40,772 and an EWS Rank of 8,231, which paved the way for my admission into IIIT Dharwad.',
+        type: 'Achievement',
+        order: 2,
+      },
+      {
+        title: 'Intermediate (11th & 12th)',
+        institution: 'Narayana Shivani Bhavan, Vijayawada',
+        duration: '2021 — 2023',
+        description: 'Completed my higher secondary education under the Board of Intermediate Education, Andhra Pradesh (BIEAP). Scored a stellar 874/1000.',
+        type: 'Education',
+        order: 3,
+      },
+      {
+        title: 'Secondary School (10th)',
+        institution: 'Narayana High School, Proddatur',
+        duration: 'Passed in 2021',
+        description: 'Born and raised in Proddatur, Kadapa District, Andhra Pradesh. Completed my schooling under the AP State Board (BSEAP), achieving an outstanding score of 599/600.',
+        type: 'Education',
+        order: 4,
+      }
+    ]);
     console.log('Timeline seeded.');
 
     // 8. Log success and exit

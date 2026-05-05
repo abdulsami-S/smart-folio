@@ -16,7 +16,13 @@ const app = express();
 app.use(helmet());
 
 // Strict CORS Configuration
-const allowedOrigins = [process.env.CLIENT_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'].filter(Boolean);
+const allowedOrigins = [
+  process.env.CLIENT_URL, 
+  'http://localhost:5173', 
+  'http://127.0.0.1:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5174'
+].filter(Boolean);
 app.use(cors({
   origin: function (origin, callback) {
     // allow requests with no origin (like mobile apps or curl requests) only in development, or if the origin is explicitly allowed

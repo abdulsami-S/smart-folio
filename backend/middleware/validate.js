@@ -21,7 +21,7 @@ const loginRules = [
     .escape(),
   body('password')
     .notEmpty().withMessage('Password is required')
-    .isLength({ max: 128 }).withMessage('Password too long'),
+    .isLength({ min: 8, max: 128 }).withMessage('Password must be between 8 and 128 characters'),
   validate,
 ];
 
@@ -30,11 +30,11 @@ const createProjectRules = [
   body('title')
     .trim()
     .notEmpty().withMessage('Title is required')
-    .isLength({ max: 200 }).withMessage('Title must be under 200 characters'),
+    .isLength({ max: 100 }).withMessage('Title must be under 100 characters'),
   body('description')
     .trim()
     .notEmpty().withMessage('Description is required')
-    .isLength({ max: 2000 }).withMessage('Description must be under 2000 characters'),
+    .isLength({ max: 500 }).withMessage('Description must be under 500 characters'),
   body('techStack')
     .optional()
     .isArray({ max: 20 }).withMessage('techStack must be an array with max 20 items'),
@@ -45,11 +45,16 @@ const createProjectRules = [
   body('githubUrl')
     .optional({ values: 'falsy' })
     .trim()
-    .isURL().withMessage('githubUrl must be a valid URL'),
+    .isURL().withMessage('githubUrl must be a valid URL')
+    .matches(/^https:\/\/github\.com\//).withMessage('githubUrl must start with https://github.com/'),
   body('liveUrl')
     .optional({ values: 'falsy' })
     .trim()
     .isURL().withMessage('liveUrl must be a valid URL'),
+  body('imageUrl')
+    .optional({ values: 'falsy' })
+    .trim()
+    .isURL().withMessage('imageUrl must be a valid URL'),
   body('category')
     .optional()
     .trim()
@@ -77,7 +82,7 @@ const createSkillRules = [
   body('name')
     .trim()
     .notEmpty().withMessage('Skill name is required')
-    .isLength({ max: 100 }).withMessage('Name must be under 100 characters'),
+    .isLength({ max: 50 }).withMessage('Name must be under 50 characters'),
   body('category')
     .trim()
     .notEmpty().withMessage('Category is required')
@@ -85,7 +90,7 @@ const createSkillRules = [
     .withMessage('Invalid category'),
   body('proficiency')
     .notEmpty().withMessage('Proficiency is required')
-    .isInt({ min: 1, max: 5 }).withMessage('Proficiency must be 1–5'),
+    .isInt({ min: 1, max: 100 }).withMessage('Proficiency must be 1–100'),
   body('icon')
     .optional()
     .trim()
@@ -101,10 +106,10 @@ const createSkillRules = [
 
 const updateSkillRules = [
   param('id').isMongoId().withMessage('Invalid skill ID'),
-  body('name').optional().trim().isLength({ max: 100 }),
+  body('name').optional().trim().isLength({ max: 50 }),
   body('category').optional().trim()
     .isIn(['Languages', 'Frontend', 'Backend', 'Data & ML', 'Databases', 'Tools']),
-  body('proficiency').optional().isInt({ min: 1, max: 5 }),
+  body('proficiency').optional().isInt({ min: 1, max: 100 }),
   body('icon').optional().trim().isLength({ max: 100 }),
   body('visible').optional().isBoolean(),
   body('order').optional().isInt({ min: 0 }),
@@ -128,7 +133,7 @@ const createTimelineRules = [
   body('description')
     .optional()
     .trim()
-    .isLength({ max: 2000 }).withMessage('Description must be under 2000 characters'),
+    .isLength({ max: 300 }).withMessage('Description must be under 300 characters'),
   body('type')
     .trim()
     .notEmpty().withMessage('Type is required')
@@ -144,7 +149,7 @@ const updateTimelineRules = [
   body('title').optional().trim().isLength({ max: 200 }),
   body('institution').optional().trim().isLength({ max: 200 }),
   body('duration').optional().trim().isLength({ max: 100 }),
-  body('description').optional().trim().isLength({ max: 2000 }),
+  body('description').optional().trim().isLength({ max: 300 }),
   body('type').optional().trim().isIn(['Education', 'Work', 'Achievement']),
   body('order').optional().isInt({ min: 0 }),
   validate,

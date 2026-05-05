@@ -1,7 +1,7 @@
 {
   "name": "sami-portfolio-backend",
   "version": "1.0.0",
-  "description": "Backend API for Sami's 3D Portfolio",
+  "description": "Backend API for Sami's Smart Folio Portfolio",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

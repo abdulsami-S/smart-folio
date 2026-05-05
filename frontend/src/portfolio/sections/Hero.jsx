@@ -422,7 +422,7 @@ const Hero = ({ portfolio }) => {
             {/* Location */}
             <div className="flex items-center gap-2 mt-5" style={{ color: 'var(--fg-40)' }}>
               <MapPin size={13} />
-              <span style={{ fontSize: '0.78rem', letterSpacing: '0.08em' }}>Proddatur, Andhra Pradesh · IIIT Dharwad '27</span>
+              <span style={{ fontSize: '0.78rem', letterSpacing: '0.08em' }}>Proddatur, Andhra Pradesh ·</span>
             </div>
           </div>
 
