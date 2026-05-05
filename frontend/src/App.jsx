@@ -42,10 +42,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 const PortfolioView = () => {
   const { portfolio, projects, skills, timeline, loading } = useContext(PortfolioContext);
-  const [introComplete, setIntroComplete] = useState(
-    // If intro was already shown this session, skip it immediately
-    () => Boolean(sessionStorage.getItem('intro_shown'))
-  );
+  const [introComplete, setIntroComplete] = useState(false);
 
   useEffect(() => {
     const lenis = new Lenis({
@@ -85,37 +82,41 @@ const PortfolioView = () => {
     };
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#04050f] text-white">
-        <Loader2 className="w-12 h-12 animate-spin text-[#00d4ff]" />
-      </div>
-    );
-  }
+  // Show portfolio only when both intro finishes AND data is ready
+  const ready = introComplete && !loading;
 
   return (
-    <div className="relative bg-[var(--bg-primary)] min-h-screen overflow-hidden">
-      {/* Intro splash — renders on top, slides away when done */}
+    <div className="relative min-h-screen overflow-hidden" style={{ backgroundColor: 'var(--bg)' }}>
+      {/* Intro splash — fixed overlay, plays while data loads in background */}
       {!introComplete && (
         <IntroScreen onComplete={() => setIntroComplete(true)} />
       )}
 
-      {/* Portfolio — hidden until intro finishes to prevent flash */}
-      <div style={{ visibility: introComplete ? 'visible' : 'hidden' }}>
-        <Navbar portfolio={portfolio} />
-        <main>
-          <Hero portfolio={portfolio} />
-          <About portfolio={portfolio} />
-          <Skills skills={skills} />
-          <MarqueeTicker />
-          <Projects projects={projects} />
-          <Timeline timeline={timeline} />
-          <CTABanner />
-          <Contact portfolio={portfolio} />
-          <Footer />
-        </main>
-        <CustomCursor />
-      </div>
+      {/* Loading fallback — shown only if intro finished but data still loading */}
+      {introComplete && loading && (
+        <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg)' }}>
+          <Loader2 className="w-10 h-10 animate-spin" style={{ color: 'var(--accent)' }} />
+        </div>
+      )}
+
+      {/* Portfolio — rendered once everything is ready */}
+      {ready && (
+        <>
+          <Navbar portfolio={portfolio} />
+          <main>
+            <Hero portfolio={portfolio} />
+            <About portfolio={portfolio} />
+            <Skills skills={skills} />
+            <MarqueeTicker />
+            <Projects projects={projects} />
+            <Timeline timeline={timeline} />
+            <CTABanner />
+            <Contact portfolio={portfolio} />
+            <Footer />
+          </main>
+          <CustomCursor />
+        </>
+      )}
     </div>
   );
 };
