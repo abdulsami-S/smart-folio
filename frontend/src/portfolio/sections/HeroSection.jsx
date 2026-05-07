@@ -4,51 +4,70 @@ import { Download, ChevronRight, MapPin, Sparkles, ArrowDown } from 'lucide-reac
 import { ThemeContext } from '../../context/ThemeContext';
 import { FALLBACK_PROJECTS } from '../data/projects';
 
-/* ─── Magnetic Button ─────────────────────────────────────────── */
+/* ─── Magnetic Button ─────────────────────────────────────────────────────────
+ * Subtle magnetic hover effect — the button gently drifts toward the cursor
+ * when within RADIUS pixels. Pull strength is kept low (0.25) so adjacent
+ * buttons never collide. The inner text moves a tiny counter-direction amount
+ * to create a soft depth / parallax feel.
+ * ─────────────────────────────────────────────────────────────────────────── */
 const MagneticBtn = ({ children, className, style, href, target, rel }) => {
-  const wrapRef = useRef(null);
-  const innerRef = useRef(null);
+  const wrapRef  = useRef(null); // the outer <a> element that physically moves
+  const innerRef = useRef(null); // inner span — moves opposite for depth illusion
   const isActive = useRef(false);
-  const RADIUS = 160; // px — magnetic field radius
+
+  // Distance (px) from button center at which the magnetic field begins
+  const RADIUS = 140;
+
+  // Max translation applied to the button — kept small so buttons never overlap
+  // Original was 0.65 — reduced to 0.25 (≈ 62% reduction)
+  const PULL_STRENGTH = 0.25;
 
   useEffect(() => {
-    const wrap = wrapRef.current;
+    const wrap  = wrapRef.current;
     const inner = innerRef.current;
     if (!wrap || !inner) return;
 
     const onMouseMove = (e) => {
       const rect = wrap.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      const dx = e.clientX - cx;
-      const dy = e.clientY - cy;
+
+      // Distance from cursor to button center
+      const dx   = e.clientX - (rect.left + rect.width  / 2);
+      const dy   = e.clientY - (rect.top  + rect.height / 2);
       const dist = Math.sqrt(dx * dx + dy * dy);
 
       if (dist < RADIUS) {
         isActive.current = true;
-        const strength = Math.max(0, 1 - dist / RADIUS); // 0 at edge, 1 at center
-        const pullX = dx * 0.65;
-        const pullY = dy * 0.65;
-        // Button body moves strongly
+
+        // strength: 0 at the edge of the field, 1 at the center
+        const strength = Math.max(0, 1 - dist / RADIUS);
+
+        // How far the button drifts toward the cursor
+        const pullX = dx * PULL_STRENGTH;
+        const pullY = dy * PULL_STRENGTH;
+
+        // Animate button wrapper — gentle drift + very subtle 3D tilt
         gsap.to(wrap, {
           x: pullX,
           y: pullY,
-          scale: 1 + strength * 0.12,
-          rotateX: (-dy / RADIUS) * 15,
-          rotateY: (dx / RADIUS) * 15,
-          boxShadow: `0 ${8 + strength * 30}px ${20 + strength * 60}px rgba(201,112,74,${0.15 + strength * 0.35})`,
-          duration: 0.4,
+          scale: 1 + strength * 0.06,            // was 0.12 — softer scale
+          rotateX: (-dy / RADIUS) * 6,           // was 15deg — much calmer tilt
+          rotateY:  (dx / RADIUS) * 6,
+          boxShadow: `0 ${6 + strength * 16}px ${16 + strength * 30}px rgba(201,112,74,${0.1 + strength * 0.2})`,
+          duration: 0.45,
           ease: 'power2.out',
           transformPerspective: 600,
         });
-        // Inner text moves in opposite direction (creates depth/parallax)
+
+        // Inner text counter-moves slightly — creates a depth parallax feel
         gsap.to(inner, {
-          x: -dx * 0.12,
-          y: -dy * 0.12,
-          duration: 0.4,
+          x: -dx * 0.05,   // was 0.12 — much more subtle
+          y: -dy * 0.05,
+          duration: 0.45,
           ease: 'power2.out',
         });
+
       } else if (isActive.current) {
+        // Cursor left the field — spring back to resting position
         isActive.current = false;
         gsap.to(wrap, {
           x: 0, y: 0, scale: 1, rotateX: 0, rotateY: 0,
@@ -74,79 +93,102 @@ const MagneticBtn = ({ children, className, style, href, target, rel }) => {
       className={className}
       style={{ ...style, display: 'inline-flex', willChange: 'transform' }}
     >
-      <span ref={innerRef} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', willChange: 'transform' }}>
+      <span
+        ref={innerRef}
+        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', willChange: 'transform' }}
+      >
         {children}
       </span>
     </a>
   );
 };
 
-/* ─── Particle Trail Canvas ───────────────────────────────────── */
+/* ─── Particle Trail Canvas ───────────────────────────────────────────────────
+ * Draws a light, elegant sparkle trail that follows the cursor.
+ * Design decisions for a premium feel:
+ *  - Max 2 particles per frame (was 5) — keeps it subtle, not a fireworks show
+ *  - Small particle radius 1–3px (was 2.5–6.5px)
+ *  - Fast decay so the trail is short and refined, not lingering
+ *  - Soft radial gradient halo at 1.8× radius (was 2.5×) — less bloat
+ * ─────────────────────────────────────────────────────────────────────────── */
 const ParticleTrail = ({ isDark }) => {
   const canvasRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    const ctx    = canvas.getContext('2d');
     let particles = [];
-    let mouseX = window.innerWidth / 2;
-    let mouseY = window.innerHeight / 2;
-    let lastX = mouseX, lastY = mouseY;
+    let lastX = window.innerWidth  / 2;
+    let lastY = window.innerHeight / 2;
     let frameId;
 
+    // Keep canvas full-screen
     const resize = () => {
-      canvas.width = window.innerWidth;
+      canvas.width  = window.innerWidth;
       canvas.height = window.innerHeight;
     };
     resize();
     window.addEventListener('resize', resize);
 
     const onMouseMove = (e) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-      const dx = mouseX - lastX;
-      const dy = mouseY - lastY;
+      const dx    = e.clientX - lastX;
+      const dy    = e.clientY - lastY;
       const speed = Math.sqrt(dx * dx + dy * dy);
-      // More particles on fast movement, min 1 on slow move
-      const count = Math.min(Math.floor(speed * 0.4) + 1, 5);
+
+      // Cap at 2 particles — elegant trail, not a storm
+      // Only spawn if cursor moved at least 2px to avoid idle buildup
+      const count = speed > 2 ? Math.min(Math.floor(speed * 0.12) + 1, 2) : 0;
+
       for (let i = 0; i < count; i++) {
         const angle = Math.random() * Math.PI * 2;
-        const vel = 0.4 + Math.random() * 2.0;
+        const vel   = 0.2 + Math.random() * 0.8; // slow, delicate drift
+
         particles.push({
-          x: mouseX + (Math.random() - 0.5) * 6,
-          y: mouseY + (Math.random() - 0.5) * 6,
-          vx: Math.cos(angle) * vel * 0.5,
-          vy: Math.sin(angle) * vel * 0.5 - 0.8,
-          life: 1,
-          decay: 0.012 + Math.random() * 0.016,  // slower fade = longer trail
-          size: 2.5 + Math.random() * 4,
+          x:     e.clientX + (Math.random() - 0.5) * 4,
+          y:     e.clientY + (Math.random() - 0.5) * 4,
+          vx:    Math.cos(angle) * vel * 0.4,
+          vy:    Math.sin(angle) * vel * 0.4 - 0.4, // gentle upward drift
+          life:  1,
+          decay: 0.03 + Math.random() * 0.03, // fast fade = short, crisp trail
+          size:  1.0 + Math.random() * 2.0,   // small: 1–3px (was 2.5–6.5px)
         });
       }
-      lastX = mouseX; lastY = mouseY;
+
+      lastX = e.clientX;
+      lastY = e.clientY;
     };
     window.addEventListener('mousemove', onMouseMove);
 
+    // Animation loop — update physics and redraw each particle
     const tick = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Remove dead particles
       particles = particles.filter(p => p.life > 0);
+
       for (const p of particles) {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.04;  // gentle gravity
-        p.vx *= 0.98;  // soft air drag
+        // Physics
+        p.x   += p.vx;
+        p.y   += p.vy;
+        p.vy  += 0.02;   // very light gravity
+        p.vx  *= 0.97;   // air drag
         p.life -= p.decay;
+
         const alpha = Math.max(0, p.life);
-        const r = Math.max(0, p.size * p.life);
-        // Outer soft halo
-        const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 2.5);
-        grd.addColorStop(0,   `rgba(232, 168, 124, ${alpha * 0.95})`);
-        grd.addColorStop(0.3, `rgba(201, 112,  74, ${alpha * 0.6})`);
+        const r     = Math.max(0, p.size * p.life);
+
+        // Soft radial glow — halo at 1.8× radius (was 2.5×, now less bloated)
+        const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 1.8);
+        grd.addColorStop(0,   `rgba(232, 168, 124, ${alpha * 0.85})`);
+        grd.addColorStop(0.4, `rgba(201, 112,  74, ${alpha * 0.4})`);
         grd.addColorStop(1,   `rgba(201, 112,  74, 0)`);
+
         ctx.beginPath();
-        ctx.arc(p.x, p.y, r * 2.5, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, r * 1.8, 0, Math.PI * 2);
         ctx.fillStyle = grd;
         ctx.fill();
       }
+
       frameId = requestAnimationFrame(tick);
     };
     tick();
@@ -164,7 +206,8 @@ const ParticleTrail = ({ isDark }) => {
       style={{
         position: 'fixed', top: 0, left: 0,
         width: '100%', height: '100%',
-        pointerEvents: 'none', zIndex: 9998,
+        pointerEvents: 'none',
+        zIndex: 9998,
       }}
     />
   );
@@ -445,7 +488,8 @@ const Hero = ({ portfolio }) => {
             </div>
 
             {/* Magnetic Buttons */}
-            <div ref={buttonsRef} className="flex flex-wrap gap-4">
+            {/* gap-8 ensures buttons never touch even at full magnetic pull (max ~35px) */}
+            <div ref={buttonsRef} className="flex flex-wrap gap-8">
               <MagneticBtn
                 href="#projects"
                 style={{ background: 'linear-gradient(135deg, #c9704a, #9b3d1e)', color: '#fff3e6' }}

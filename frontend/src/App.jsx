@@ -5,38 +5,39 @@ import { Toaster } from 'react-hot-toast';
 import Lenis from '@studio-freight/lenis';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { Loader2 } from 'lucide-react';
 
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { PortfolioProvider, PortfolioContext } from './context/PortfolioContext';
 
-// Portfolio Components
+// Portfolio Layout Components
 import Navbar from './portfolio/components/Navbar';
 import CustomCursor, { CursorProvider } from './portfolio/components/CustomCursor';
 import MarqueeTicker from './portfolio/components/MarqueeTicker';
 import Footer from './portfolio/components/Footer';
-
-import Hero from './portfolio/sections/Hero';
-import About from './portfolio/sections/About';
-import Skills from './portfolio/sections/Skills';
-import Projects from './portfolio/sections/Projects';
-import Timeline from './portfolio/sections/Timeline';
-import Contact from './portfolio/sections/Contact';
-import CTABanner from './portfolio/sections/CTABanner';
 import IntroScreen from './portfolio/components/IntroScreen';
 
-// Admin Components
+// Portfolio Page Sections
+import HeroSection from './portfolio/sections/HeroSection';
+import AboutSection from './portfolio/sections/AboutSection';
+import SkillsSection from './portfolio/sections/SkillsSection';
+import ProjectsSection from './portfolio/sections/ProjectsSection';
+import TimelineSection from './portfolio/sections/TimelineSection';
+import CTABannerSection from './portfolio/sections/CTABannerSection';
+import ContactSection from './portfolio/sections/ContactSection';
+
+// Admin Panel
 import AdminLogin from './admin/AdminLogin';
 import AdminLayout from './admin/AdminLayout';
 import ProtectedRoute from './admin/ProtectedRoute';
-import Overview from './admin/pages/Overview';
+import DashboardOverview from './admin/pages/DashboardOverview';
+import HeroEditor from './admin/pages/HeroEditor';
+import AboutEditor from './admin/pages/AboutEditor';
 import ProjectsManager from './admin/pages/ProjectsManager';
 import SkillsManager from './admin/pages/SkillsManager';
-import AboutEditor from './admin/pages/AboutEditor';
 import TimelineManager from './admin/pages/TimelineManager';
-import HeroEditor from './admin/pages/HeroEditor';
 import SocialEditor from './admin/pages/SocialEditor';
-import { Loader2 } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -67,10 +68,10 @@ const PortfolioView = () => {
         return {
           top: 0, left: 0,
           width: window.innerWidth,
-          height: window.innerHeight
+          height: window.innerHeight,
         };
       },
-      pinType: document.documentElement.style.transform ? "transform" : "fixed"
+      pinType: document.documentElement.style.transform ? 'transform' : 'fixed',
     });
 
     ScrollTrigger.addEventListener('refresh', () => lenis.resize());
@@ -82,20 +83,20 @@ const PortfolioView = () => {
     };
   }, []);
 
-  // Show portfolio only when both intro finishes AND data is ready
+  // Show portfolio only when intro finishes AND data is ready
   const ready = introComplete && !loading;
 
   return (
-    <div className="relative min-h-screen overflow-hidden" style={{ backgroundColor: 'var(--bg)' }}>
-      {/* Intro splash — fixed overlay, plays while data loads in background */}
+    <div style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden', backgroundColor: 'var(--bg)' }}>
+      {/* Intro splash — plays on every page load */}
       {!introComplete && (
         <IntroScreen onComplete={() => setIntroComplete(true)} />
       )}
 
       {/* Loading fallback — shown only if intro finished but data still loading */}
       {introComplete && loading && (
-        <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg)' }}>
-          <Loader2 className="w-10 h-10 animate-spin" style={{ color: 'var(--accent)' }} />
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg)' }}>
+          <Loader2 style={{ width: 40, height: 40, color: 'var(--accent)', animation: 'spin 1s linear infinite' }} />
         </div>
       )}
 
@@ -104,14 +105,14 @@ const PortfolioView = () => {
         <>
           <Navbar portfolio={portfolio} />
           <main>
-            <Hero portfolio={portfolio} />
-            <About portfolio={portfolio} />
-            <Skills skills={skills} />
+            <HeroSection portfolio={portfolio} />
+            <AboutSection portfolio={portfolio} />
+            <SkillsSection skills={skills} />
             <MarqueeTicker />
-            <Projects projects={projects} />
-            <Timeline timeline={timeline} />
-            <CTABanner />
-            <Contact portfolio={portfolio} />
+            <ProjectsSection projects={projects} />
+            <TimelineSection timeline={timeline} />
+            <CTABannerSection />
+            <ContactSection portfolio={portfolio} />
             <Footer />
           </main>
           <CustomCursor />
@@ -131,8 +132,12 @@ function App() {
               <Toaster
                 position="top-right"
                 toastOptions={{
-                  className: 'bg-[#0d0f1e] text-white border border-[rgba(255,255,255,0.1)] shadow-[0_0_20px_rgba(0,0,0,0.5)]',
-                  style: { background: '#0d0f1e', color: '#fff' },
+                  style: {
+                    background: '#0d0f1e',
+                    color: '#fff',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    boxShadow: '0 0 20px rgba(0,0,0,0.5)',
+                  },
                 }}
               />
               <Routes>
@@ -142,8 +147,8 @@ function App() {
 
                 <Route path="/admin" element={<ProtectedRoute />}>
                   <Route element={<AdminLayout />}>
-                    <Route index element={<Overview />} />
-                    <Route path="dashboard" element={<Overview />} />
+                    <Route index element={<DashboardOverview />} />
+                    <Route path="dashboard" element={<DashboardOverview />} />
                     <Route path="projects" element={<ProjectsManager />} />
                     <Route path="skills" element={<SkillsManager />} />
                     <Route path="about" element={<AboutEditor />} />
