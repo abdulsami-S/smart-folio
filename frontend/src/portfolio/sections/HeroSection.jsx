@@ -6,9 +6,9 @@ import { FALLBACK_PROJECTS } from '../data/projects';
 
 /* ─── Magnetic Button ─────────────────────────────────────────────────────────
  * Subtle magnetic hover effect — the button gently drifts toward the cursor
- * when within RADIUS pixels. Pull strength is kept low (0.25) so adjacent
- * buttons never collide. The inner text moves a tiny counter-direction amount
- * to create a soft depth / parallax feel.
+ * when within RADIUS pixels. Pull strength is very low (0.10) and translation
+ * is clamped to MAX_DRIFT px so adjacent buttons can never collide.
+ * The inner text moves a tiny counter-direction for a soft parallax feel.
  * ─────────────────────────────────────────────────────────────────────────── */
 const MagneticBtn = ({ children, className, style, href, target, rel }) => {
   const wrapRef  = useRef(null); // the outer <a> element that physically moves
@@ -16,11 +16,13 @@ const MagneticBtn = ({ children, className, style, href, target, rel }) => {
   const isActive = useRef(false);
 
   // Distance (px) from button center at which the magnetic field begins
-  const RADIUS = 140;
+  const RADIUS = 80;
 
-  // Max translation applied to the button — kept small so buttons never overlap
-  // Original was 0.65 — reduced to 0.25 (≈ 62% reduction)
-  const PULL_STRENGTH = 0.25;
+  // Pull multiplier — kept very gentle for a subtle, elegant attraction
+  const PULL_STRENGTH = 0.10;
+
+  // Hard cap (px) — ensures buttons never drift more than this, preventing overlap
+  const MAX_DRIFT = 15;
 
   useEffect(() => {
     const wrap  = wrapRef.current;
@@ -41,28 +43,29 @@ const MagneticBtn = ({ children, className, style, href, target, rel }) => {
         // strength: 0 at the edge of the field, 1 at the center
         const strength = Math.max(0, 1 - dist / RADIUS);
 
-        // How far the button drifts toward the cursor
-        const pullX = dx * PULL_STRENGTH;
-        const pullY = dy * PULL_STRENGTH;
+        // How far the button drifts — clamped so it never exceeds MAX_DRIFT
+        const clamp = (v, max) => Math.max(-max, Math.min(max, v));
+        const pullX = clamp(dx * PULL_STRENGTH, MAX_DRIFT);
+        const pullY = clamp(dy * PULL_STRENGTH, MAX_DRIFT);
 
-        // Animate button wrapper — gentle drift + very subtle 3D tilt
+        // Animate button wrapper — very gentle drift + barely-there 3D tilt
         gsap.to(wrap, {
           x: pullX,
           y: pullY,
-          scale: 1 + strength * 0.06,            // was 0.12 — softer scale
-          rotateX: (-dy / RADIUS) * 6,           // was 15deg — much calmer tilt
-          rotateY:  (dx / RADIUS) * 6,
-          boxShadow: `0 ${6 + strength * 16}px ${16 + strength * 30}px rgba(201,112,74,${0.1 + strength * 0.2})`,
-          duration: 0.45,
+          scale: 1 + strength * 0.03,            // very subtle scale bump
+          rotateX: (-dy / RADIUS) * 3,           // barely perceptible tilt
+          rotateY:  (dx / RADIUS) * 3,
+          boxShadow: `0 ${4 + strength * 8}px ${10 + strength * 14}px rgba(201,112,74,${0.06 + strength * 0.12})`,
+          duration: 0.5,
           ease: 'power2.out',
           transformPerspective: 600,
         });
 
-        // Inner text counter-moves slightly — creates a depth parallax feel
+        // Inner text counter-moves very slightly — subtle depth parallax
         gsap.to(inner, {
-          x: -dx * 0.05,   // was 0.12 — much more subtle
-          y: -dy * 0.05,
-          duration: 0.45,
+          x: -dx * 0.02,
+          y: -dy * 0.02,
+          duration: 0.5,
           ease: 'power2.out',
         });
 
@@ -104,12 +107,13 @@ const MagneticBtn = ({ children, className, style, href, target, rel }) => {
 };
 
 /* ─── Particle Trail Canvas ───────────────────────────────────────────────────
- * Draws a light, elegant sparkle trail that follows the cursor.
- * Design decisions for a premium feel:
- *  - Max 2 particles per frame (was 5) — keeps it subtle, not a fireworks show
- *  - Small particle radius 1–3px (was 2.5–6.5px)
- *  - Fast decay so the trail is short and refined, not lingering
- *  - Soft radial gradient halo at 1.8× radius (was 2.5×) — less bloat
+ * Draws a very light, elegant sparkle trail that follows the cursor.
+ * Design decisions for a premium, minimal feel:
+ *  - Max 1 particle per frame — whisper-thin trail, never a fireworks show
+ *  - Tiny particle radius 0.5–1.5px — barely visible dots of light
+ *  - Aggressive decay (0.04–0.07) so particles vanish quickly
+ *  - Spawn only when cursor moves fast enough (> 6px between frames)
+ *  - Compact halo at 1.5× radius — crisp, no bloom
  * ─────────────────────────────────────────────────────────────────────────── */
 const ParticleTrail = ({ isDark }) => {
   const canvasRef = useRef(null);
@@ -122,7 +126,7 @@ const ParticleTrail = ({ isDark }) => {
     let lastY = window.innerHeight / 2;
     let frameId;
 
-    // Keep canvas full-screen
+    // Keep canvas sized to the full viewport
     const resize = () => {
       canvas.width  = window.innerWidth;
       canvas.height = window.innerHeight;
@@ -135,22 +139,21 @@ const ParticleTrail = ({ isDark }) => {
       const dy    = e.clientY - lastY;
       const speed = Math.sqrt(dx * dx + dy * dy);
 
-      // Cap at 2 particles — elegant trail, not a storm
-      // Only spawn if cursor moved at least 2px to avoid idle buildup
-      const count = speed > 2 ? Math.min(Math.floor(speed * 0.12) + 1, 2) : 0;
+      // Only spawn when cursor is moving briskly (> 6px), max 1 particle
+      const count = speed > 6 ? 1 : 0;
 
       for (let i = 0; i < count; i++) {
         const angle = Math.random() * Math.PI * 2;
-        const vel   = 0.2 + Math.random() * 0.8; // slow, delicate drift
+        const vel   = 0.15 + Math.random() * 0.5; // very slow, delicate drift
 
         particles.push({
-          x:     e.clientX + (Math.random() - 0.5) * 4,
-          y:     e.clientY + (Math.random() - 0.5) * 4,
-          vx:    Math.cos(angle) * vel * 0.4,
-          vy:    Math.sin(angle) * vel * 0.4 - 0.4, // gentle upward drift
+          x:     e.clientX + (Math.random() - 0.5) * 3,
+          y:     e.clientY + (Math.random() - 0.5) * 3,
+          vx:    Math.cos(angle) * vel * 0.3,
+          vy:    Math.sin(angle) * vel * 0.3 - 0.3, // gentle upward drift
           life:  1,
-          decay: 0.03 + Math.random() * 0.03, // fast fade = short, crisp trail
-          size:  1.0 + Math.random() * 2.0,   // small: 1–3px (was 2.5–6.5px)
+          decay: 0.04 + Math.random() * 0.03, // aggressive fade = short trail
+          size:  0.5 + Math.random() * 1.0,   // tiny: 0.5–1.5px
         });
       }
 
@@ -177,14 +180,14 @@ const ParticleTrail = ({ isDark }) => {
         const alpha = Math.max(0, p.life);
         const r     = Math.max(0, p.size * p.life);
 
-        // Soft radial glow — halo at 1.8× radius (was 2.5×, now less bloated)
-        const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 1.8);
-        grd.addColorStop(0,   `rgba(232, 168, 124, ${alpha * 0.85})`);
-        grd.addColorStop(0.4, `rgba(201, 112,  74, ${alpha * 0.4})`);
+        // Crisp radial glow — compact 1.5× halo, no bloat
+        const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 1.5);
+        grd.addColorStop(0,   `rgba(232, 168, 124, ${alpha * 0.7})`);
+        grd.addColorStop(0.5, `rgba(201, 112,  74, ${alpha * 0.25})`);
         grd.addColorStop(1,   `rgba(201, 112,  74, 0)`);
 
         ctx.beginPath();
-        ctx.arc(p.x, p.y, r * 1.8, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, r * 1.5, 0, Math.PI * 2);
         ctx.fillStyle = grd;
         ctx.fill();
       }
@@ -487,20 +490,20 @@ const Hero = ({ portfolio }) => {
               </p>
             </div>
 
-            {/* Magnetic Buttons */}
-            {/* gap-8 ensures buttons never touch even at full magnetic pull (max ~35px) */}
-            <div ref={buttonsRef} className="flex flex-wrap gap-8">
+            {/* ── CTA Buttons ── */}
+            {/* gap-10 (2.5rem = 40px) > MAX_DRIFT (15px) — buttons can never touch */}
+            <div ref={buttonsRef} className="flex flex-wrap gap-10">
               <MagneticBtn
                 href="#projects"
                 style={{ background: 'linear-gradient(135deg, #c9704a, #9b3d1e)', color: '#fff3e6' }}
-                className="group px-7 py-3.5 font-bold rounded-full text-sm uppercase tracking-[0.15em] flex items-center gap-2 cursor-none"
+                className="group px-7 py-3.5 font-bold rounded-full text-sm uppercase tracking-[0.15em] cursor-none"
               >
                 View Projects <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </MagneticBtn>
               <MagneticBtn
                 href="/resume.pdf" target="_blank" rel="noopener noreferrer"
                 style={{ borderColor: 'var(--border)', color: 'var(--fg)', border: '1px solid' }}
-                className="px-7 py-3.5 bg-transparent font-bold rounded-full hover:bg-[var(--fg-06)] transition-all flex items-center gap-2 text-sm uppercase tracking-[0.15em] cursor-none"
+                className="px-7 py-3.5 bg-transparent font-bold rounded-full hover:bg-[var(--fg-06)] transition-all text-sm uppercase tracking-[0.15em] cursor-none"
               >
                 <Download className="w-4 h-4" /> Resume
               </MagneticBtn>
