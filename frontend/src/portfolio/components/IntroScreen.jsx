@@ -6,7 +6,7 @@ import { gsap } from 'gsap';
  *
  * Sequence (~4.3s total):
  *  0.5s  → Thin horizontal line draws open from center (like a curtain parting)
- *  1.2s  → "Welcome to my Portfolio" rises up from below, fades in
+ *  1.2s  → "Welcome to Sami's Portfolio" rises up from below, fades in
  *  1.8s  → Accent underline glows in from left to right
  *  2.1s  → "Full Stack Developer" label lifts and fades in
  *  2.9s  → Hold — deliberate stillness, brand poise
@@ -96,14 +96,14 @@ const IntroScreen = ({ onComplete }) => {
         overflow: 'hidden',
       }}
     >
-      {/* Decorative line — draws open from center */}
+      {/* Decorative line — draws open from center like an elegant curtain */}
       <div
         ref={topLineRef}
         style={{
-          width: '140px',
-          height: '1px',
-          backgroundColor: 'var(--accent)',
-          boxShadow: '0 0 14px 3px rgba(201,112,74,0.45)',
+          width: '40vw',
+          height: '2px',
+          background: 'linear-gradient(90deg, transparent 0%, var(--accent) 20%, var(--accent) 80%, transparent 100%)',
+          boxShadow: '0 0 20px 5px rgba(201,112,74,0.5), 0 0 40px 10px rgba(201,112,74,0.25)',
           marginBottom: '2.2rem',
           willChange: 'transform, opacity',
         }}
@@ -125,7 +125,7 @@ const IntroScreen = ({ onComplete }) => {
           willChange: 'transform, opacity',
         }}
       >
-        Welcome to my Portfolio
+        Welcome to Sami's Portfolio
       </div>
 
       {/* Accent underline — grows left to right */}
