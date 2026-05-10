@@ -111,7 +111,7 @@ const Skills = () => {
       {/* HEADER */}
       <div className={`fixed-header ${isMobile ? 'mb-12' : 'absolute top-12 left-20 z-20 pointer-events-none'}`}>
         <p className="text-[var(--accent)] text-[0.8rem] tracking-[0.2em] font-bold uppercase mb-2">
-          02 // EXPERTISE
+          TECH STACK
         </p>
         <h2 className="text-[var(--fg)]" style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem,4vw,3.5rem)', lineHeight: 1, letterSpacing: '-0.02em' }}>
           <span style={{ fontWeight: 300 }}>Core </span>

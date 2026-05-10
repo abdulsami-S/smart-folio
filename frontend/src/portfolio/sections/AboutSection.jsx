@@ -278,12 +278,12 @@ const About = ({ portfolio }) => {
           {/* Right: Bio Text Reveal */}
           <div className="space-y-10">
             <div>
-              <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--accent)] mb-4 block font-semibold">
-                01 // Discover
-              </span>
+                <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--accent)] mb-4 block font-semibold">
+                  Discover More
+                </span>
               <h2 style={{ fontFamily: 'var(--font-display)', lineHeight: 1 }}>
                 <span className="text-[var(--fg)]" style={{ fontSize: 'clamp(3rem, 6vw, 5rem)', fontWeight: 300, display: 'block' }}>About</span>
-                <span className="text-[var(--accent)]" style={{ fontSize: 'clamp(3.5rem, 7vw, 5.5rem)', fontWeight: 700, fontStyle: 'italic', display: 'block' }}>Me.</span>
+                <span className="text-[var(--accent)]" style={{ fontSize: 'clamp(3.5rem, 7vw, 5.5rem)', fontWeight: 700, fontStyle: 'italic', display: 'block' }}>Me</span>
               </h2>
               <div className="w-[80px] h-px bg-[var(--accent)] mt-8" />
             </div>
