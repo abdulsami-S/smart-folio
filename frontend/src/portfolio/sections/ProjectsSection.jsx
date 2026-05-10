@@ -92,7 +92,7 @@ const Projects = ({ projects }) => {
       <div className="container mx-auto px-6 lg:px-12">
         <div className="projects-header mb-20 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
           <div>
-            <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--accent)] mb-4 block font-semibold">03 // Work</span>
+            <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--accent)] mb-4 block font-semibold"> Work</span>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(3rem, 6vw, 5.5rem)', fontWeight: 700, lineHeight: 1, letterSpacing: '-0.02em' }}>
               <span className="text-[var(--fg)]" style={{ fontWeight: 300 }}>Selected </span>
               <span style={{ fontStyle: 'italic', color: 'var(--accent)' }}>Work.</span>
