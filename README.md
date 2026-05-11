@@ -12,7 +12,6 @@
 [![Tech](https://img.shields.io/badge/React%20+%20GSAP-Full%20Stack-orange?style=for-the-badge)](#-tech-stack)
 [![DB](https://img.shields.io/badge/MongoDB-Local/Atlas-green?style=for-the-badge)](#)
 
-</div>
 
 ---
 
@@ -21,7 +20,6 @@
 <table>
   <tr>
     <td align="center"><b>🌌 Hero Section</b></td>
-    <td align="center"><b>🚀 Skills Showcase</b></td>
   </tr>
   <tr>
     <td><img src="https://raw.githubusercontent.com/abdulsami-S/smart-folio/main/assets/screenshots/hero.png" width="480" alt="Interactive Hero with Particle Trails"/></td>
@@ -30,6 +28,7 @@
   <tr>
     <td align="center"><b>📂 Dynamic Projects Panel</b></td>
     <td align="center"><b>📬 Contact</b></td>
+Small change: added this one-line placeholder to create a commit (2026-05-11).
   </tr>
   <tr>
     <td><img src="https://raw.githubusercontent.com/abdulsami-S/smart-folio/main/assets/screenshots/projects.png" width="480" alt="Interactive Projects Preview"/></td>
