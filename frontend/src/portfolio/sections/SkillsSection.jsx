@@ -5,6 +5,36 @@ import { ThemeContext } from '../../context/ThemeContext';
 
 gsap.registerPlugin(ScrollTrigger);
 
+/* ─── Devicon slug map — skill name → devicon class string ─────────────────── */
+const DEVICON_MAP = {
+  "Flask":             "devicon-flask-original colored",
+  "Node.js":           "devicon-nodejs-plain colored",
+  "REST APIs":         "devicon-fastapi-plain colored",
+  "Scikit-learn":      "devicon-scikitlearn-plain colored",
+  "GeoPandas":         "devicon-pandas-plain colored",
+  "NumPy":             "devicon-numpy-plain colored",
+  "Pandas":            "devicon-pandas-plain colored",
+  "Rasterio":          "devicon-python-plain colored",
+  "MySQL":             "devicon-mysql-original colored",
+  "SQLite":            "devicon-sqlite-plain colored",
+  "Firebase":          "devicon-firebase-plain colored",
+  "React.js":          "devicon-react-original colored",
+  "Leaflet.js":        "devicon-leaflet-plain colored",
+  "Vanilla JS":        "devicon-javascript-plain colored",
+  "Responsive Design": "devicon-css3-plain colored",
+  "Python":            "devicon-python-plain colored",
+  "JavaScript":        "devicon-javascript-plain colored",
+  "C++":               "devicon-cplusplus-plain colored",
+  "SQL":               "devicon-mysql-original colored",
+  "HTML5":             "devicon-html5-plain colored",
+  "CSS3":              "devicon-css3-plain colored",
+  "Git":               "devicon-git-plain colored",
+  "GitHub":            "devicon-github-original colored",
+  "VS Code":           "devicon-vscode-plain colored",
+  "Postman":           "devicon-postman-plain colored",
+  "Linux":             "devicon-linux-plain colored",
+};
+
 const skillData = [
   {
     category: "Backend",
@@ -39,22 +69,22 @@ const skillData = [
 ];
 
 const Skills = () => {
-  const sectionRef = useRef(null);
-  const trackRef = useRef(null);
+  const sectionRef  = useRef(null);
+  const trackRef    = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile]       = useState(false);
   const { theme } = useContext(ThemeContext);
   const isDark = theme === 'dark';
 
+  /* ── Responsive check ─────────────────────────────────────────────────────── */
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  /* ── Horizontal pin-scroll (desktop only) ─────────────────────────────────── */
   useEffect(() => {
     if (isMobile) {
       ScrollTrigger.getAll().forEach(t => {
@@ -64,7 +94,7 @@ const Skills = () => {
     }
 
     const section = sectionRef.current;
-    const track = trackRef.current;
+    const track   = trackRef.current;
     if (!section || !track) return;
 
     const totalScroll = track.scrollWidth - window.innerWidth;
@@ -102,9 +132,21 @@ const Skills = () => {
     return () => { ctx.revert(); };
   }, [isMobile]);
 
+  /* ── Staggered bottom-to-top pill entrance when active card changes ────────── */
+  useEffect(() => {
+    const activeCard = document.querySelector('.skills-card-active');
+    if (!activeCard) return;
+    const pills = activeCard.querySelectorAll('.skill-pill');
+    gsap.fromTo(
+      pills,
+      { y: 24, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.4, stagger: 0.06, ease: 'power3.out', delay: 0.15 }
+    );
+  }, [activeIndex]);
+
   return (
-    <section 
-      ref={sectionRef} 
+    <section
+      ref={sectionRef}
       id="skills"
       className={`relative bg-[var(--bg)] ${isMobile ? 'py-20 px-4' : 'h-screen overflow-hidden'}`}
     >
@@ -120,8 +162,8 @@ const Skills = () => {
       </div>
 
       {/* TRACK */}
-      <div 
-        ref={trackRef} 
+      <div
+        ref={trackRef}
         className={`${isMobile ? 'flex flex-col gap-6 w-full' : 'flex flex-row items-center gap-[24px] h-full will-change-transform'}`}
         style={{ padding: isMobile ? '0' : '0 calc(50vw - 210px)' }}
       >
@@ -129,31 +171,33 @@ const Skills = () => {
           const isActive = isMobile ? true : activeIndex === i;
 
           return (
-            <div 
+            <div
               key={i}
               className={`
                 shrink-0 rounded-[20px] transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]
                 flex flex-col relative overflow-hidden
-                ${isMobile ? 'w-full' : 'w-[420px] h-auto min-h-[380px]'}
-                ${isActive 
-                  ? (isDark 
-                    ? 'bg-gradient-to-br from-[#4f2548] via-[#44203e] to-[#2d1228] shadow-[0_40px_100px_rgba(201,112,74,0.15)]' 
-                    : 'bg-gradient-to-br from-[#eedfc8] via-[#e5d3b8] to-[#dcb79a] shadow-[0_40px_100px_rgba(201,112,74,0.15)]') 
+                ${isMobile ? 'w-full' : 'w-[420px] h-auto'}
+                ${isActive
+                  ? (isDark
+                    ? 'bg-gradient-to-br from-[#4f2548] via-[#44203e] to-[#2d1228] shadow-[0_40px_100px_rgba(201,112,74,0.15)] skills-card-active'
+                    : 'bg-gradient-to-br from-[#eedfc8] via-[#e5d3b8] to-[#dcb79a] shadow-[0_40px_100px_rgba(201,112,74,0.15)] skills-card-active')
                   : 'bg-[var(--bg-card)]'}
               `}
               style={{
                 borderWidth: '1px',
                 borderStyle: 'solid',
                 borderColor: isActive ? 'var(--accent)' : 'var(--border-sub)',
-                transform: isActive && !isMobile ? 'scale(1.04) translateY(-8px)' : 'none'
+                transform: isActive && !isMobile ? 'scale(1.04) translateY(-8px)' : 'none',
+                /* Compact height on inactive — just enough for number + title */
+                minHeight: isActive ? '380px' : 'auto',
               }}
             >
               <div className="flex flex-col justify-between h-full p-8">
 
-                {/* Number + Category */}
+                {/* ── Number + Category title only ─────────────────────────── */}
                 <div>
                   <div className="flex items-baseline gap-3 mb-4">
-                    <span 
+                    <span
                       className="leading-none select-none"
                       style={{
                         fontFamily: 'var(--font-display)',
@@ -166,7 +210,7 @@ const Skills = () => {
                     >
                       0{i + 1}
                     </span>
-                    <h3 
+                    <h3
                       className="text-[var(--fg)] transition-all duration-500"
                       style={{
                         fontFamily: 'var(--font-display)',
@@ -181,63 +225,110 @@ const Skills = () => {
                   </div>
                 </div>
 
-                {/* Expandable Details — only visible when active */}
-                <div 
-                  className={`transition-all duration-500 overflow-hidden ${isActive ? 'opacity-100 max-h-[400px]' : 'opacity-0 max-h-0'}`}
+                {/* ── Expandable details — hidden on inactive cards ─────────── */}
+                <div
+                  className={`transition-all duration-500 overflow-hidden ${isActive ? 'opacity-100 max-h-[400px]' : 'opacity-0 max-h-0 pointer-events-none'}`}
                 >
                   {/* Accent line */}
-                  <div 
+                  <div
                     className="h-[2px] mb-5 transition-all duration-500"
-                    style={{ 
+                    style={{
                       width: isActive ? '60px' : '30px',
                       backgroundColor: isActive ? 'var(--accent)' : 'var(--border-sub)',
                     }}
                   />
-
                   {/* Description */}
-                  <p 
-                    style={{ 
-                      fontSize: '0.95rem', 
-                      lineHeight: 1.75, 
-                      color: 'var(--fg-60)',
-                      fontWeight: 400,
-                    }}
-                  >
+                  <p style={{ fontSize: '0.95rem', lineHeight: 1.75, color: 'var(--fg-60)', fontWeight: 400 }}>
                     {skill.description}
                   </p>
                 </div>
 
-                {/* Tech Stack — bottom section */}
-                <div className={`transition-all duration-500 overflow-hidden ${isActive ? 'opacity-100 max-h-[400px]' : 'opacity-0 max-h-0'}`}>
+                {/* ── Tech Stack pills — hidden on inactive cards ───────────── */}
+                <div
+                  className={`transition-all duration-500 overflow-hidden ${isActive ? 'opacity-100 max-h-[400px]' : 'opacity-0 max-h-0 pointer-events-none'}`}
+                >
+                  {/* Divider */}
                   <div className="flex items-center gap-3 mb-4">
                     <div className="h-px flex-1" style={{ backgroundColor: 'var(--border-sub)' }} />
-                    <span 
-                      className="text-[0.55rem] font-bold uppercase tracking-[0.25em]" 
+                    <span
+                      className="text-[0.55rem] font-bold uppercase tracking-[0.25em]"
                       style={{ color: isActive ? 'var(--accent)' : 'var(--fg-40)' }}
                     >
                       Stack
                     </span>
                     <div className="h-px flex-1" style={{ backgroundColor: 'var(--border-sub)' }} />
                   </div>
-                  
-                  <div className="flex flex-wrap gap-2">
+
+                  {/* Icon-only pills with hover tooltip */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                     {skill.services.map((s, idx) => (
-                      <span 
-                        key={idx} 
-                        className="text-[0.75rem] font-medium px-3.5 py-2 rounded-lg transition-all duration-300"
-                        style={{ 
-                          backgroundColor: isActive 
-                            ? 'color-mix(in srgb, var(--accent) 12%, transparent)' 
-                            : 'var(--fg-06)', 
-                          color: isActive ? 'var(--fg)' : 'var(--fg-60)', 
-                          border: `1px solid ${isActive ? 'color-mix(in srgb, var(--accent) 30%, transparent)' : 'var(--border-sub)'}`,
+                      <div
+                        key={idx}
+                        className="skill-pill"
+                        style={{
+                          position: 'relative',
+                          width: 44,
+                          height: 44,
+                          borderRadius: 12,
+                          backgroundColor: 'rgba(0,0,0,0.4)',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          cursor: 'default',
+                          transition: 'all 0.2s ease',
+                          backdropFilter: 'blur(8px)',
+                        }}
+                        onMouseEnter={e => {
+                          e.currentTarget.style.borderColor = 'var(--accent)';
+                          e.currentTarget.style.backgroundColor = 'rgba(201,112,74,0.15)';
+                          e.currentTarget.querySelector('.pill-tooltip').style.opacity = '1';
+                          e.currentTarget.querySelector('.pill-tooltip').style.transform = 'translateX(-50%) translateY(-4px)';
+                        }}
+                        onMouseLeave={e => {
+                          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+                          e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.4)';
+                          e.currentTarget.querySelector('.pill-tooltip').style.opacity = '0';
+                          e.currentTarget.querySelector('.pill-tooltip').style.transform = 'translateX(-50%) translateY(0px)';
                         }}
                       >
-                        {s}
-                      </span>
+                        {DEVICON_MAP[s] && (
+                          <i
+                            className={DEVICON_MAP[s]}
+                            style={{ fontSize: 22, lineHeight: 1 }}
+                          />
+                        )}
+                        {/* Hover tooltip */}
+                        <div
+                          className="pill-tooltip"
+                          style={{
+                            position: 'absolute',
+                            bottom: '110%',
+                            left: '50%',
+                            transform: 'translateX(-50%) translateY(0px)',
+                            backgroundColor: '#1a0d17',
+                            color: 'var(--fg)',
+                            fontSize: '0.65rem',
+                            fontWeight: 600,
+                            letterSpacing: '0.05em',
+                            whiteSpace: 'nowrap',
+                            padding: '4px 8px',
+                            borderRadius: 6,
+                            border: '1px solid var(--border)',
+                            opacity: 0,
+                            transition: 'opacity 0.2s ease, transform 0.2s ease',
+                            pointerEvents: 'none',
+                            zIndex: 10,
+                          }}
+                        >
+                          {s}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
+
               </div>
             </div>
           );

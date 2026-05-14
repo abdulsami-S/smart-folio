@@ -62,7 +62,7 @@ Think of this as a **digital business card on steroids**:
 ### For Visitors (Public Portfolio)
 | Feature | Description |
 |---------|-------------|
-| 🎬 **Cinematic Character Intro** | Premium stick-figure character draws itself with glowing SVG stroke animation, scattered letters assemble into a logo, then reveals the homepage |
+| 🎬 **Cinematic Character Intro** | fromanother.love-inspired cream loader screen: a walking SVG character animates in profile view, a percentage counter counts 0→100%, and a thin progress bar fills — then the screen fades away to reveal the portfolio. |
 | 🌌 **Interactive Hero Section** | Parallax ambient orbs, cursor-following spotlight, canvas particle trails, 3D CSS name tilt, and magnetic buttons |
 | 🌊 **Smooth Scrolling** | Studio-grade fluid scrolling powered by Lenis |
 | ✨ **Cinematic Animations** | Blur-to-clear entrances and scroll-triggered animations using GSAP |
@@ -299,6 +299,7 @@ npm run dev
 - ✅ How to implement highly secure authentication using **HTTP-only cookies** and a dual-token (Access + Refresh) architecture.
 - ✅ How to coordinate complex layout requirements like horizontal pin-scrolling, parallax orbs, and 3D CSS tilt transforms simultaneously.
 - ✅ How to design a complete **dark/light theme system** with CSS custom properties and React context.
+- ✅ How to build a **fromanother.love-inspired preloader** with a CSS-animated walking figure, GSAP percentage counter, and seamless theme-aware fade transition.
 
 ---
 
