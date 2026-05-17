@@ -37,6 +37,14 @@ const Contact = ({ portfolio }) => {
           }
         }
       );
+
+      /* ── Emit sectionChange for ThreeBackground transition effect ── */
+      ScrollTrigger.create({
+        trigger: sectionRef.current,
+        start: 'top 60%',
+        onEnter: () => window.dispatchEvent(new CustomEvent('sectionChange')),
+        once: true,
+      });
     }, sectionRef);
 
     return () => ctx.revert();

@@ -83,6 +83,14 @@ const Projects = ({ projects }) => {
     if (!sectionRef.current) return;
     const ctx = gsap.context(() => {
       gsap.fromTo(sectionRef.current.querySelector('.projects-header'), { opacity: 0, y: 60, filter: "blur(8px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 1, ease: "power4.out", scrollTrigger: { trigger: sectionRef.current, start: "top 75%", toggleActions: "play none none reverse" } });
+
+      /* ── Emit sectionChange for ThreeBackground transition effect ── */
+      ScrollTrigger.create({
+        trigger: sectionRef.current,
+        start: 'top 60%',
+        onEnter: () => window.dispatchEvent(new CustomEvent('sectionChange')),
+        once: true,
+      });
     }, sectionRef);
     return () => ctx.revert();
   }, []);

@@ -127,6 +127,14 @@ const Skills = () => {
           toggleActions: "play none none reverse"
         }
       });
+
+      /* ── Emit sectionChange for ThreeBackground transition effect ── */
+      ScrollTrigger.create({
+        trigger: section,
+        start: 'top 60%',
+        onEnter: () => window.dispatchEvent(new CustomEvent('sectionChange')),
+        once: true,
+      });
     }, sectionRef);
 
     return () => { ctx.revert(); };
