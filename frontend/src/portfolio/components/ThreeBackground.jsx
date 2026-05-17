@@ -2,172 +2,137 @@ import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { gsap } from 'gsap';
 
-/* ─── SAKAZUKI.IO-STYLE THREE.JS 3D PARTICLE BACKGROUND ─────────────────────
- * Premium constellation particle field with:
- *  - 320 floating particles with weighted color distribution
- *  - Dynamic constellation lines connecting nearby particles
- *  - 3 wireframe geometric shapes (icosahedron, torus, octahedron)
- *  - Smooth mouse-driven parallax on the entire scene
- *  - Scroll drift — world drifts upward as user scrolls down
- *  - Section transition reactions (rotation + shape pulse + particle flash)
- *  - Additive blending for soft glow aesthetic
- *  - Full cleanup on unmount
- *
- * Color weights:
- *   #c9704a (4x) — dominant warm copper
- *   #e8a87c (3x) — light peach accent
- *   #d4855a (2x) — mid-tone terracotta
- *   #9b3d1e (1x) — deep sienna
- *   #fff3e6 (1x rare) — cream sparkle
- *
- * Palette: #381932 bg, project accent colors
+/* ─── THORNE-STYLE DENSE WAVE PARTICLE CLOUD ────────────────────────────────
+ * Dense curved wave on right side, sparse ambient on left
+ * Matches Thorne.com's dramatic particle formation exactly
  * ──────────────────────────────────────────────────────────────────────────── */
 
-/* Weighted color pool — each hex repeated by its weight factor */
-const COLOR_POOL = [
-  0xc9704a, 0xc9704a, 0xc9704a, 0xc9704a,   // 4x weight
-  0xe8a87c, 0xe8a87c, 0xe8a87c,               // 3x weight
-  0xd4855a, 0xd4855a,                          // 2x weight
-  0x9b3d1e,                                    // 1x weight
-  0xfff3e6,                                    // 1x rare
+const INSTANCE_COUNT = 2200;
+
+const COLORS = [
+  { color: new THREE.Color(0xc9704a), threshold: 0.50 },
+  { color: new THREE.Color(0xe8a87c), threshold: 0.80 },
+  { color: new THREE.Color(0xd4855a), threshold: 0.95 },
+  { color: new THREE.Color(0xfff3e6), threshold: 1.00 },
 ];
 
-const ThreeBackground = ({ isDark }) => {
-  const mountRef = useRef(null);
+function pickColor(rand) {
+  for (let i = 0; i < COLORS.length; i++) {
+    if (rand < COLORS[i].threshold) return COLORS[i].color;
+  }
+  return COLORS[0].color;
+}
+
+const ThreeBackground = ({ isDark = true }) => {
+  const mountRef    = useRef(null);
   const mouseTarget = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     const mount = mountRef.current;
     if (!mount) return;
 
-    /* ── Scene, Camera, Renderer ── */
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(
-      60, window.innerWidth / window.innerHeight, 0.1, 200
-    );
-    camera.position.z = 55;
-
+    /* ── Renderer ── */
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(0x000000, 0);
-    // FIX #2 — Force canvas to stretch full width/height with no gaps
-    renderer.domElement.style.width = '100%';
-    renderer.domElement.style.height = '100%';
-    renderer.domElement.style.display = 'block';
+    renderer.domElement.style.cssText =
+      'position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:0;';
     mount.appendChild(renderer.domElement);
 
-    /* ── Master group — everything rotates together for parallax ── */
+    /* ── Scene & Camera ── */
+    const scene  = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x2d1228, 0.006);
+
+    const camera = new THREE.PerspectiveCamera(
+      55, window.innerWidth / window.innerHeight, 0.1, 300
+    );
+    camera.position.z = 60;
+
     const world = new THREE.Group();
     scene.add(world);
 
-    /* ══════════════════════════════════════════════════════════════
-       PARTICLES — 320 with per-particle weighted colors
-       FIX #1 — Larger spread (110), bigger size (0.28), higher opacity (0.92)
-       ══════════════════════════════════════════════════════════════ */
-    const P_COUNT = 320;
-    const SPREAD = 110;
-    const positions = new Float32Array(P_COUNT * 3);
-    const colors = new Float32Array(P_COUNT * 3);
-    const sizes = new Float32Array(P_COUNT);
-    const velocities = [];
+    /* ── Lighting for 3D sphere depth ── */
+    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+    const dirLight = new THREE.DirectionalLight(0xe8a87c, 1.2);
+    dirLight.position.set(15, 20, 10);
+    scene.add(dirLight);
+    const rimLight = new THREE.DirectionalLight(0xc9704a, 0.4);
+    rimLight.position.set(-10, -5, -10);
+    scene.add(rimLight);
 
-    for (let i = 0; i < P_COUNT; i++) {
-      positions[i * 3]     = (Math.random() - 0.5) * SPREAD;
-      positions[i * 3 + 1] = (Math.random() - 0.5) * SPREAD;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 50 - 10;
+    /* ── InstancedMesh ── */
+    const sphereGeo = new THREE.SphereGeometry(0.11, 7, 7);
+    const BASE_OPACITY = isDark ? 0.78 : 0.55;
 
-      velocities.push({
-        x: (Math.random() - 0.5) * 0.014,
-        y: (Math.random() - 0.5) * 0.014 + 0.006,  // slight upward drift (antigravity)
-        z: (Math.random() - 0.5) * 0.007,
-      });
-
-      // Pick from weighted color pool
-      const color = new THREE.Color(COLOR_POOL[Math.floor(Math.random() * COLOR_POOL.length)]);
-      colors[i * 3]     = color.r;
-      colors[i * 3 + 1] = color.g;
-      colors[i * 3 + 2] = color.b;
-
-      // Slight size variation — rare cream particles are a touch bigger
-      sizes[i] = color.getHex() === 0xfff3e6
-        ? 0.30 + Math.random() * 0.10
-        : 0.16 + Math.random() * 0.14;
-    }
-
-    const pGeo = new THREE.BufferGeometry();
-    pGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    pGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-    const BASE_OPACITY = isDark ? 0.92 : 0.7;
-    const pMat = new THREE.PointsMaterial({
-      size: isDark ? 0.28 : 0.20,
+    const pMat = new THREE.MeshLambertMaterial({
       transparent: true,
       opacity: BASE_OPACITY,
-      sizeAttenuation: true,
-      blending: THREE.AdditiveBlending,
-      vertexColors: true,
-      depthWrite: false,
-    });
-
-    world.add(new THREE.Points(pGeo, pMat));
-
-    /* ══════════════════════════════════════════════════════════════
-       CONSTELLATION LINES — FIX #1: MAX_DIST 7→10 for denser network
-       ══════════════════════════════════════════════════════════════ */
-    const MAX_DIST = 10;
-    const MAX_LINES = 600;
-    const linePos = new Float32Array(MAX_LINES * 6);
-    const lineColors = new Float32Array(MAX_LINES * 6);
-    const lGeo = new THREE.BufferGeometry();
-    lGeo.setAttribute('position', new THREE.BufferAttribute(linePos, 3));
-    lGeo.setAttribute('color', new THREE.BufferAttribute(lineColors, 3));
-    lGeo.setDrawRange(0, 0);
-
-    const lMat = new THREE.LineBasicMaterial({
-      transparent: true,
-      opacity: isDark ? 0.16 : 0.10,
-      blending: THREE.AdditiveBlending,
-      vertexColors: true,
-      depthWrite: false,
-    });
-
-    world.add(new THREE.LineSegments(lGeo, lMat));
-
-    /* ══════════════════════════════════════════════════════════════
-       WIREFRAME SHAPES — icosahedron, torus, octahedron
-       ══════════════════════════════════════════════════════════════ */
-    const wMat = (hexColor, op) => new THREE.MeshBasicMaterial({
-      color: hexColor, wireframe: true, transparent: true,
-      opacity: isDark ? op : op * 0.7,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
 
-    const shapes = [];
+    const mesh  = new THREE.InstancedMesh(sphereGeo, pMat, INSTANCE_COUNT);
+    const dummy = new THREE.Object3D();
 
-    // Large icosahedron — top-right area
-    const ico = new THREE.Mesh(new THREE.IcosahedronGeometry(7, 1), wMat(0xc9704a, 0.13));
-    ico.position.set(20, 10, -18);
-    shapes.push(ico);
+    for (let i = 0; i < INSTANCE_COUNT; i++) {
+      let x, y, z, sizeMul;
+      const bucket = Math.random();
 
-    // Torus — bottom-center-right
-    const torus = new THREE.Mesh(
-      new THREE.TorusGeometry(5.5, 0.35, 10, 36), wMat(0xe8a87c, 0.10)
-    );
-    torus.position.set(14, -14, -20);
-    shapes.push(torus);
+      if (bucket < 0.45) {
+        /* ── DENSE WAVE CORE — right side, Thorne's signature formation ──
+         * Curved band sweeping from bottom-center to top-right
+         * High density = particles packed tightly = dramatic wave look */
+        const t       = (Math.random() - 0.3) * Math.PI * 1.4;
+        const waveR   = 22 + Math.random() * 18; // ring thickness 22–40
+        const spread  = 8 + Math.random() * 10;  // tight spread
+        x = Math.cos(t) * waveR + 18 + (Math.random() - 0.5) * spread;
+        y = Math.sin(t) * waveR * 0.7 + (Math.random() - 0.5) * spread;
+        z = (Math.random() - 0.5) * 22 - 5;
+        // Dense wave particles: mostly small, some medium
+        sizeMul = Math.random() < 0.15
+          ? 1.4 + Math.random() * 0.5   // 15%: medium accent
+          : 0.25 + Math.random() * 0.9; // 85%: small tight dots
+      } else if (bucket < 0.65) {
+        /* ── SECONDARY CLUSTER — upper right, sparser ── */
+        const t     = Math.random() * Math.PI * 2;
+        const r     = 10 + Math.random() * 20;
+        x = Math.cos(t) * r + 25 + (Math.random() - 0.5) * 15;
+        y = Math.sin(t) * r * 0.6 + 8 + (Math.random() - 0.5) * 12;
+        z = (Math.random() - 0.5) * 20 - 8;
+        sizeMul = 0.2 + Math.random() * 0.8;
+      } else if (bucket < 0.85) {
+        /* ── AMBIENT SCATTER — full screen, sparse ──
+         * These give the "floating in space" feel on left/top/bottom */
+        x = (Math.random() - 0.5) * 130;
+        y = (Math.random() - 0.5) * 85;
+        z = (Math.random() - 0.5) * 35 - 12;
+        sizeMul = 0.15 + Math.random() * 0.6; // tiny ambient dots
+      } else {
+        /* ── EDGE PARTICLES — defines outer boundary ── */
+        const theta  = Math.random() * Math.PI * 2;
+        const phi    = Math.acos(2 * Math.random() - 1);
+        const r      = 38 + Math.random() * 10;
+        x = r * Math.sin(phi) * Math.cos(theta);
+        y = r * Math.sin(phi) * Math.sin(theta) * 0.6;
+        z = r * Math.cos(phi) * 0.4 - 10;
+        sizeMul = 0.15 + Math.random() * 0.4; // very small edge dots
+      }
 
-    // Octahedron — left area
-    const octa = new THREE.Mesh(new THREE.OctahedronGeometry(4.5, 0), wMat(0xd4855a, 0.11));
-    octa.position.set(-22, -4, -12);
-    shapes.push(octa);
+      dummy.position.set(x, y, z);
+      dummy.scale.setScalar(sizeMul);
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+      mesh.setColorAt(i, pickColor(Math.random()));
+    }
 
-    shapes.forEach(s => world.add(s));
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.instanceColor.needsUpdate  = true;
+    world.add(mesh);
 
-    /* ── Event listeners ── */
+    /* ── Events ── */
     const onMouseMove = (e) => {
-      mouseTarget.current.x = (e.clientX / window.innerWidth - 0.5) * 2;
+      mouseTarget.current.x = (e.clientX / window.innerWidth  - 0.5) * 2;
       mouseTarget.current.y = (e.clientY / window.innerHeight - 0.5) * 2;
     };
     window.addEventListener('mousemove', onMouseMove);
@@ -179,147 +144,59 @@ const ThreeBackground = ({ isDark }) => {
     };
     window.addEventListener('resize', onResize);
 
-    /* ══════════════════════════════════════════════════════════════
-       FIX #4 — SECTION TRANSITION: Listen for 'sectionChange' custom event
-       On section enter: rotate scene, pulse shapes, flash particle opacity
-       ══════════════════════════════════════════════════════════════ */
+    /* ── Section change ── */
     const onSectionChange = () => {
-      // Subtle scene rotation
-      gsap.to(world.rotation, {
-        z: world.rotation.z + 0.15,
-        duration: 1.5,
-        ease: 'power2.inOut',
-      });
-
-      // Pulse wireframe shapes: scale up 1.2x then back
-      shapes.forEach((s) => {
-        gsap.to(s.scale, {
-          x: 1.2, y: 1.2, z: 1.2,
-          duration: 0.6,
-          ease: 'elastic.out(1, 0.4)',
-          onComplete: () => {
-            gsap.to(s.scale, {
-              x: 1, y: 1, z: 1,
-              duration: 0.8,
-              ease: 'power2.out',
-            });
-          },
-        });
-      });
-
-      // Flash particle opacity: brighten momentarily then settle
+      gsap.to(world.rotation, { y: '+=0.35', duration: 1.8, ease: 'power2.inOut' });
       gsap.to(pMat, {
-        opacity: 1.0,
-        duration: 0.4,
-        ease: 'power2.out',
-        onComplete: () => {
-          gsap.to(pMat, {
-            opacity: BASE_OPACITY,
-            duration: 1.0,
-            ease: 'power2.inOut',
-          });
-        },
+        opacity: Math.min(BASE_OPACITY + 0.18, 1.0),
+        duration: 0.35, ease: 'power2.out',
+        onComplete: () => gsap.to(pMat, {
+          opacity: BASE_OPACITY, duration: 1.4, ease: 'power2.inOut',
+        }),
       });
     };
     window.addEventListener('sectionChange', onSectionChange);
 
-    /* ══════════════════════════════════════════════════════════════
-       ANIMATION LOOP
-       ══════════════════════════════════════════════════════════════ */
+    /* ── Animation loop ── */
     const smoothMouse = { x: 0, y: 0 };
     const clock = new THREE.Clock();
     let animId;
 
     const animate = () => {
+      animId = requestAnimationFrame(animate);
       const t = clock.getElapsedTime();
 
-      // Smooth mouse parallax on entire scene
-      smoothMouse.x += (mouseTarget.current.x - smoothMouse.x) * 0.03;
-      smoothMouse.y += (mouseTarget.current.y - smoothMouse.y) * 0.03;
-      world.rotation.y =  smoothMouse.x * 0.18;
-      world.rotation.x = -smoothMouse.y * 0.12;
+      // Slow constant rotation — cloud drifts gently
+      world.rotation.y += 0.0004;
 
-      // FIX #1 — Scroll drift: scene drifts upward as user scrolls
-      world.position.y = -window.scrollY * 0.010;
+      // Mouse parallax
+      smoothMouse.x += (mouseTarget.current.x - smoothMouse.x) * 0.025;
+      smoothMouse.y += (mouseTarget.current.y - smoothMouse.y) * 0.025;
+      world.rotation.y += smoothMouse.x * 0.00025;
+      world.rotation.x  = smoothMouse.y * -0.06;
 
-      // ── Update particles ──
-      const p = pGeo.attributes.position.array;
-      const half = SPREAD / 2;
-      for (let i = 0; i < P_COUNT; i++) {
-        const i3 = i * 3;
-        p[i3]     += velocities[i].x;
-        p[i3 + 1] += velocities[i].y;
-        p[i3 + 2] += velocities[i].z;
-        // Wrap around boundaries
-        if (p[i3]     >  half) p[i3]     = -half;
-        if (p[i3]     < -half) p[i3]     =  half;
-        if (p[i3 + 1] >  half) p[i3 + 1] = -half;
-        if (p[i3 + 1] < -half) p[i3 + 1] =  half;
-        if (p[i3 + 2] >  15)   p[i3 + 2] = -35;
-        if (p[i3 + 2] < -35)   p[i3 + 2] =  15;
-      }
-      pGeo.attributes.position.needsUpdate = true;
+      // Scroll drift
+      world.position.y = -window.scrollY * 0.006 + Math.sin(t * 0.12) * 0.6;
 
-      // ── Update constellation lines ──
-      let li = 0;
-      const lp = lGeo.attributes.position.array;
-      const lc = lGeo.attributes.color.array;
-      const pc = pGeo.attributes.color.array;
-
-      for (let i = 0; i < P_COUNT && li < MAX_LINES; i++) {
-        const i3 = i * 3;
-        for (let j = i + 1; j < P_COUNT && li < MAX_LINES; j++) {
-          const j3 = j * 3;
-          const dx = p[i3] - p[j3];
-          const dy = p[i3 + 1] - p[j3 + 1];
-          const dz = p[i3 + 2] - p[j3 + 2];
-          const distSq = dx * dx + dy * dy + dz * dz;
-          if (distSq < MAX_DIST * MAX_DIST) {
-            const b = li * 6;
-            // positions
-            lp[b]     = p[i3];     lp[b + 1] = p[i3 + 1]; lp[b + 2] = p[i3 + 2];
-            lp[b + 3] = p[j3];    lp[b + 4] = p[j3 + 1]; lp[b + 5] = p[j3 + 2];
-            // colors — average of connected particle colors
-            lc[b]     = (pc[i3] + pc[j3]) * 0.5;
-            lc[b + 1] = (pc[i3+1] + pc[j3+1]) * 0.5;
-            lc[b + 2] = (pc[i3+2] + pc[j3+2]) * 0.5;
-            lc[b + 3] = lc[b]; lc[b + 4] = lc[b + 1]; lc[b + 5] = lc[b + 2];
-            li++;
-          }
-        }
-      }
-      lGeo.setDrawRange(0, li * 2);
-      lGeo.attributes.position.needsUpdate = true;
-      lGeo.attributes.color.needsUpdate = true;
-
-      // ── Rotate wireframe shapes at different speeds ──
-      ico.rotation.x    = t * 0.08;   ico.rotation.y    = t * 0.12;
-      torus.rotation.x  = t * 0.06;   torus.rotation.y  = t * 0.10;
-      octa.rotation.x   = t * 0.10;   octa.rotation.z   = t * 0.07;
+      // Subtle breathing
+      world.scale.setScalar(Math.sin(t * 0.18) * 0.010 + 1.0);
 
       renderer.render(scene, camera);
-      animId = requestAnimationFrame(animate);
     };
     animate();
 
-    /* ── Full cleanup on unmount ── */
+    /* ── Cleanup ── */
     return () => {
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('resize', onResize);
       window.removeEventListener('sectionChange', onSectionChange);
       cancelAnimationFrame(animId);
-
-      // Dispose geometries and materials
-      pGeo.dispose(); pMat.dispose();
-      lGeo.dispose(); lMat.dispose();
-      shapes.forEach(s => { s.geometry.dispose(); s.material.dispose(); });
-
-      // Dispose renderer and remove canvas
+      sphereGeo.dispose();
+      pMat.dispose();
+      mesh.dispose();
       renderer.dispose();
       renderer.forceContextLoss();
-      if (mount.contains(renderer.domElement)) {
-        mount.removeChild(renderer.domElement);
-      }
+      if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
     };
   }, [isDark]);
 
@@ -327,14 +204,9 @@ const ThreeBackground = ({ isDark }) => {
     <div
       ref={mountRef}
       style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100vw',
-        height: '100vh',
-        zIndex: 0,
-        pointerEvents: 'none',
-        overflow: 'hidden',
+        position: 'fixed', top: 0, left: 0,
+        width: '100vw', height: '100vh',
+        zIndex: 0, pointerEvents: 'none', overflow: 'hidden',
       }}
     />
   );

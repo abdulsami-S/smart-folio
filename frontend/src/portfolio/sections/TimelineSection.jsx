@@ -46,6 +46,7 @@ const TimelineItem = ({ entry, index, isDark }) => {
   const iconRef = useRef(null);
   const wrapperRef = useRef(null);
   const shimmerRef = useRef(null);
+  const contentRef = useRef(null);
   const floatTween = useRef(null);
   const isEven = index % 2 === 0;
 
@@ -189,6 +190,29 @@ const TimelineItem = ({ entry, index, isDark }) => {
         },
       });
 
+      /* ── Force-hide all content children immediately on mount ── */
+      if (contentRef.current) {
+        const children = contentRef.current.children;
+        gsap.set(children, { opacity: 0, y: 30, filter: 'blur(6px)' });
+
+        /* ── Staggered content reveal — only when card is centered in viewport ── */
+        ScrollTrigger.create({
+          trigger: itemRef.current,
+          start: 'center 65%',
+          once: true,
+          onEnter: () => {
+            gsap.to(children, {
+              opacity: 1,
+              y: 0,
+              filter: 'blur(0px)',
+              duration: 0.7,
+              stagger: 0.18,
+              ease: 'power3.out',
+            });
+          },
+        });
+      }
+
       /* ── Icon circle pop-in with elastic ease ── */
       if (iconRef.current) {
         gsap.fromTo(iconRef.current, {
@@ -247,14 +271,14 @@ const TimelineItem = ({ entry, index, isDark }) => {
           }}
         />
 
-        <div className="relative z-10">
-          <span className="inline-block px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-6 border" style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontStyle: 'italic', backgroundColor: 'var(--fg-06)', borderColor: 'var(--border-sub)', color: 'var(--fg)' }}>
+        <div ref={contentRef} className="relative z-10">
+          <span className="inline-block px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-6 border" style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontStyle: 'italic', backgroundColor: 'var(--fg-06)', borderColor: 'var(--border-sub)', color: 'var(--fg)', opacity: 0 }}>
             {entry.duration}
           </span>
-          <h3 className="text-2xl md:text-3xl mb-2 group-hover:text-[var(--accent)] transition-colors text-[var(--fg)]" style={{ fontFamily: 'var(--font-display)', fontWeight: 700 }}>{entry.title}</h3>
-          <h4 className="text-sm font-semibold uppercase tracking-widest text-[var(--fg-40)] mb-6">{entry.institution}</h4>
+          <h3 className="text-2xl md:text-3xl mb-2 group-hover:text-[var(--accent)] transition-colors text-[var(--fg)]" style={{ fontFamily: 'var(--font-display)', fontWeight: 700, opacity: 0 }}>{entry.title}</h3>
+          <h4 className="text-sm font-semibold uppercase tracking-widest text-[var(--fg-40)] mb-6" style={{ opacity: 0 }}>{entry.institution}</h4>
           {entry.description && (
-            <p className="text-sm text-[var(--fg-60)] leading-relaxed group-hover:text-[var(--fg)] transition-colors">{entry.description}</p>
+            <p className="text-sm text-[var(--fg-60)] leading-relaxed group-hover:text-[var(--fg)] transition-colors" style={{ opacity: 0 }}>{entry.description}</p>
           )}
         </div>
       </div>
