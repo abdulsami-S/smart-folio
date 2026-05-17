@@ -45,6 +45,8 @@ const TimelineItem = ({ entry, index, isDark }) => {
   const itemRef = useRef(null);
   const iconRef = useRef(null);
   const wrapperRef = useRef(null);
+  const shimmerRef = useRef(null);
+  const floatTween = useRef(null);
   const isEven = index % 2 === 0;
 
   const getIcon = () => {
@@ -56,11 +58,105 @@ const TimelineItem = ({ entry, index, isDark }) => {
     }
   };
 
+  /* ── 3D TILT on hover: card tilts toward cursor position ── */
+  const handleMouseMove = (e) => {
+    const card = itemRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;   // 0→1
+    const y = (e.clientY - rect.top) / rect.height;    // 0→1
+    const tiltX = (y - 0.5) * -12;   // ±6° vertical tilt
+    const tiltY = (x - 0.5) * 12;    // ±6° horizontal tilt
+
+    gsap.to(card, {
+      rotateX: tiltX,
+      rotateY: tiltY,
+      duration: 0.4,
+      ease: 'power2.out',
+      overwrite: 'auto',
+    });
+  };
+
+  /* ── HOVER ENTER: lift, glow, shimmer sweep, icon pulse ── */
+  const handleMouseEnter = (e) => {
+    const card = itemRef.current;
+    if (!card) return;
+
+    // Kill the idle float so it doesn't fight the hover
+    if (floatTween.current) floatTween.current.pause();
+
+    gsap.to(card, {
+      scale: 1.03,
+      y: -10,
+      boxShadow: '0 30px 80px rgba(201,112,74,0.25), 0 0 40px rgba(201,112,74,0.12)',
+      borderColor: '#c9704a',
+      backgroundColor: isDark ? 'rgba(79,37,72,0.85)' : 'rgba(229,211,184,0.85)',
+      duration: 0.5,
+      ease: 'power3.out',
+      overwrite: 'auto',
+    });
+
+    // Shimmer light-sweep
+    if (shimmerRef.current) {
+      gsap.fromTo(shimmerRef.current, {
+        x: '-100%',
+        opacity: 0.6,
+      }, {
+        x: '200%',
+        opacity: 0,
+        duration: 0.8,
+        ease: 'power2.inOut',
+      });
+    }
+
+    // Icon circle pulse
+    if (iconRef.current) {
+      gsap.to(iconRef.current, {
+        scale: 1.25,
+        boxShadow: '0 0 30px rgba(201,112,74,0.6)',
+        duration: 0.4,
+        ease: 'back.out(2)',
+      });
+    }
+  };
+
+  /* ── HOVER LEAVE: spring back, reset glow, resume float ── */
+  const handleMouseLeave = () => {
+    const card = itemRef.current;
+    if (!card) return;
+
+    gsap.to(card, {
+      scale: 1,
+      rotateX: 0,
+      rotateY: 0,
+      y: 0,
+      boxShadow: '0 0 0 rgba(0,0,0,0)',
+      borderColor: 'var(--border-sub)',
+      backgroundColor: isDark ? 'rgba(68,32,62,0.6)' : 'rgba(238,223,200,0.6)',
+      duration: 0.6,
+      ease: 'elastic.out(1, 0.5)',
+      overwrite: 'auto',
+    });
+
+    // Icon reset
+    if (iconRef.current) {
+      gsap.to(iconRef.current, {
+        scale: 1,
+        boxShadow: '0 0 20px rgba(201,112,74,0.3)',
+        duration: 0.5,
+        ease: 'power2.out',
+      });
+    }
+
+    // Resume idle float
+    if (floatTween.current) floatTween.current.resume();
+  };
+
   useEffect(() => {
     if (!itemRef.current || !wrapperRef.current) return;
 
     const ctx = gsap.context(() => {
-      /* ── FIX #3: Rich card entrance ──
+      /* ── Rich card entrance ──
        * Animate: opacity 0→1, y 50→0, rotateX 15→0, blur 12px→0
        * Stagger each card by index * 0.15
        */
@@ -82,8 +178,8 @@ const TimelineItem = ({ entry, index, isDark }) => {
           start: 'top 82%',
         },
         onComplete: () => {
-          /* ── FIX #3: Continuous subtle float after entrance ── */
-          gsap.to(itemRef.current, {
+          /* ── Continuous subtle float after entrance ── */
+          floatTween.current = gsap.to(itemRef.current, {
             y: -6,
             duration: 2 + index * 0.3,
             repeat: -1,
@@ -93,7 +189,7 @@ const TimelineItem = ({ entry, index, isDark }) => {
         },
       });
 
-      /* ── FIX #3: Icon circle pop-in with elastic ease ── */
+      /* ── Icon circle pop-in with elastic ease ── */
       if (iconRef.current) {
         gsap.fromTo(iconRef.current, {
           scale: 0,
@@ -123,18 +219,34 @@ const TimelineItem = ({ entry, index, isDark }) => {
     >
       <div
         ref={iconRef}
-        className="absolute left-0 md:left-1/2 -translate-x-1/2 flex items-center justify-center w-14 h-14 rounded-full border-2 z-20 shadow-[0_0_20px_rgba(201,112,74,0.3)] border-[var(--accent)]"
+        className="absolute left-0 md:left-1/2 -translate-x-1/2 flex items-center justify-center w-14 h-14 rounded-full border-2 z-20 shadow-[0_0_20px_rgba(201,112,74,0.3)] border-[var(--accent)] transition-shadow duration-300"
         style={{ backgroundColor: 'var(--bg-card)', transform: 'scale(0)', opacity: 0 }}
       >
         {getIcon()}
       </div>
       <div 
         ref={itemRef}
-        className="w-[calc(100%-4rem)] ml-auto md:ml-0 md:w-[calc(50%-4rem)] backdrop-blur-xl p-8 rounded-3xl border transition-all duration-500 group cursor-pointer"
-        style={{ borderColor: 'var(--border-sub)', backgroundColor: isDark ? 'rgba(68,32,62,0.6)' : 'rgba(238,223,200,0.6)' }}
-        onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.backgroundColor = isDark ? 'rgba(79,37,72,0.8)' : 'rgba(229,211,184,0.8)'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-sub)'; e.currentTarget.style.backgroundColor = isDark ? 'rgba(68,32,62,0.6)' : 'rgba(238,223,200,0.6)'; }}
+        className="w-[calc(100%-4rem)] ml-auto md:ml-0 md:w-[calc(50%-4rem)] backdrop-blur-xl p-8 rounded-3xl border group cursor-pointer relative overflow-hidden"
+        style={{
+          borderColor: 'var(--border-sub)',
+          backgroundColor: isDark ? 'rgba(68,32,62,0.6)' : 'rgba(238,223,200,0.6)',
+          transformStyle: 'preserve-3d',
+          willChange: 'transform',
+        }}
+        onMouseMove={handleMouseMove}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
+        {/* ── Shimmer sweep overlay ── */}
+        <div
+          ref={shimmerRef}
+          className="absolute inset-0 pointer-events-none z-[5]"
+          style={{
+            background: 'linear-gradient(105deg, transparent 40%, rgba(201,112,74,0.15) 50%, transparent 60%)',
+            transform: 'translateX(-100%)',
+          }}
+        />
+
         <div className="relative z-10">
           <span className="inline-block px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-6 border" style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontStyle: 'italic', backgroundColor: 'var(--fg-06)', borderColor: 'var(--border-sub)', color: 'var(--fg)' }}>
             {entry.duration}
