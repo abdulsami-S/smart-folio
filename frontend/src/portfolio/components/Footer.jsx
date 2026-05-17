@@ -17,7 +17,7 @@ const Footer = () => {
   }, []);
 
   return (
-    <footer className="w-full bg-[var(--bg)] py-12 text-center relative z-10 border-t" style={{ borderColor: 'var(--border-sub)' }}>
+    <footer className="w-full py-12 text-center relative z-10 border-t" style={{ borderColor: 'var(--border-sub)', backgroundColor: 'rgba(56,25,50,0.9)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
       <div className="container mx-auto px-6 flex flex-col items-center justify-center gap-12">
         
         {/* Live IST Clock */}

@@ -11,7 +11,7 @@ const ROW_ITEMS = [...TECH_STACK, ...TECH_STACK, ...TECH_STACK];
 
 const MarqueeTicker = () => {
   return (
-    <section className="py-16 bg-[var(--bg)] overflow-hidden wrapper relative border-y" style={{ borderColor: 'var(--border-sub)' }}>
+    <section className="py-16 overflow-hidden wrapper relative border-y" style={{ borderColor: 'var(--border-sub)', zIndex: 1, backgroundColor: 'rgba(56,25,50,0.5)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes marqueeLeft {
           from { transform: translateX(0) }
