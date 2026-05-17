@@ -55,7 +55,7 @@ const Contact = ({ portfolio }) => {
   };
 
   return (
-    <section id="contact" ref={sectionRef} className="py-40 relative overflow-hidden bg-[var(--bg)]" style={{ borderTop: '1px solid var(--border-sub)' }}>
+    <section id="contact" ref={sectionRef} className="py-40 relative overflow-hidden" style={{ zIndex: 1, backgroundColor: 'transparent', borderTop: '1px solid var(--border-sub)' }}>
       
       {/* Huge subtle background text */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[20vw] whitespace-nowrap pointer-events-none select-none text-[var(--fg-06)]" style={{ fontFamily: 'var(--font-display)', fontWeight: 300, fontStyle: 'italic' }}>
@@ -123,7 +123,7 @@ const Contact = ({ portfolio }) => {
 
           {/* Right: Glassmorphism Form */}
           <div className="relative" ref={formRef}>
-            <form onSubmit={handleSubmit} className="backdrop-blur-2xl p-10 md:p-14 rounded-[2rem] border shadow-2xl relative z-10" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-sub)' }}>
+            <form onSubmit={handleSubmit} className="backdrop-blur-2xl p-10 md:p-14 rounded-[2rem] border shadow-2xl relative z-10" style={{ backgroundColor: 'rgba(68,32,62,0.8)', borderColor: 'var(--border-sub)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
               <div className="space-y-10">
                 <div className="relative group">
                   <input 

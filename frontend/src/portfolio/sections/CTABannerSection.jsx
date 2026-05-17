@@ -42,7 +42,9 @@ const CTABanner = () => {
         className="relative w-full rounded-[24px] overflow-hidden"
         style={{
           padding: '80px',
-          background: 'linear-gradient(135deg, var(--bg-2) 0%, var(--bg-card) 40%, var(--bg-2) 100%)',
+          background: 'rgba(45,18,40,0.75)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
           border: '1px solid var(--border-sub)'
         }}
       >

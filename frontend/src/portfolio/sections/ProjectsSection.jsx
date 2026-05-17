@@ -57,7 +57,7 @@ const ProjectCard = ({ project, index, isDark }) => {
           </div>
         </div>
       </div>
-      <div className="p-7 pt-5 flex flex-col flex-1" style={{ backgroundColor: 'var(--bg-card)' }}>
+      <div className="p-7 pt-5 flex flex-col flex-1" style={{ backgroundColor: 'rgba(68,32,62,0.8)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
         <div className="flex items-baseline gap-3 mb-3">
           <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', fontWeight: 600, fontStyle: 'italic', color: 'var(--fg-20)' }}>0{index + 1}</span>
           <h3 className="text-[var(--fg)] group-hover:text-[var(--accent)] transition-colors duration-300" style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.3rem, 2vw, 1.6rem)', fontWeight: 700, lineHeight: 1.2 }}>{project.title}</h3>
@@ -88,7 +88,7 @@ const Projects = ({ projects }) => {
   }, []);
 
   return (
-    <section ref={sectionRef} id="projects" className="py-40 relative z-10 bg-[var(--bg)]">
+    <section ref={sectionRef} id="projects" className="py-40 relative" style={{ zIndex: 1, backgroundColor: 'transparent' }}>
       <div className="container mx-auto px-6 lg:px-12">
         <div className="projects-header mb-20 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
           <div>

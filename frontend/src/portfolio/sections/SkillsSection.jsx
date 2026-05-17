@@ -179,10 +179,8 @@ const Skills = () => {
                 flex flex-col relative overflow-hidden
                 ${isMobile ? 'w-full' : 'w-[420px] h-auto'}
                 ${isActive
-                  ? (isDark
-                    ? 'bg-gradient-to-br from-[#4f2548] via-[#44203e] to-[#2d1228] shadow-[0_40px_100px_rgba(201,112,74,0.15)] skills-card-active'
-                    : 'bg-gradient-to-br from-[#eedfc8] via-[#e5d3b8] to-[#dcb79a] shadow-[0_40px_100px_rgba(201,112,74,0.15)] skills-card-active')
-                  : 'bg-[var(--bg-card)]'}
+                  ? 'shadow-[0_40px_100px_rgba(201,112,74,0.15)] skills-card-active'
+                  : ''}
               `}
               style={{
                 borderWidth: '1px',

@@ -120,7 +120,7 @@ const Timeline = ({ timeline }) => {
   }, []);
 
   return (
-    <section id="experience" ref={sectionRef} className="py-40 relative bg-[var(--bg)]">
+    <section id="experience" ref={sectionRef} className="py-40 relative" style={{ zIndex: 1, backgroundColor: 'transparent' }}>
       <div className="container mx-auto px-6 lg:px-12 relative z-10">
         <div className="timeline-header mb-28 text-center md:text-left">
           <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--accent)] mb-4 block font-semibold">04 // Journey</span>
