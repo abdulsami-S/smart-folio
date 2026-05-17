@@ -62,40 +62,41 @@ Think of this as a **digital business card on steroids**:
 ### For Visitors (Public Portfolio)
 | Feature | Description |
 |---------|-------------|
-| 🚶 **Walking Character Preloader** | fromanother.love-inspired cream loader: a CSS-animated SVG walking figure in profile view with natural limb gait, a GSAP percentage counter (0→100%), and a thin progress bar — all fading away to reveal the portfolio. |
-| 🪐 **Antigravity Hero Section** | Character-level floating text with independent drift physics, word-level gradient headings that bob in zero-gravity, cursor-following spotlight, upward-shooting particle trails, ambient gravity debris, parallax orbs, magnetic buttons with idle float, and sketch-line editorial dividers. |
-| 🌊 **Smooth Scrolling** | Studio-grade fluid scrolling powered by Lenis |
-| ✨ **Cinematic Animations** | Blur-to-clear entrances and scroll-triggered animations using GSAP |
-| 📂 **Interactive Projects** | Dynamic project cards with hover effects and gradient backgrounds |
-| 🚀 **Horizontal Pin Scroll** | Unique scrolling mechanics for the Skills section with expanding active cards and Devicon-powered tech stack pills |
-| 📢 **Marquee Ticker** | Auto-scrolling ticker strip for additional visual flair |
-| 💡 **CTA Banner** | Scroll-animated call-to-action section with glassmorphism styling |
-| ⏱️ **Live IST Clock** | A ticking, real-time precise clock embedded in the footer |
-| 🖱️ **Custom Cursor** | Glowing dot + outer ring cursor with antigravity particle trail (particles float UP) |
-| 🌗 **Dark / Light Theme** | Full theme toggle with persistent preference stored in localStorage |
+| 🚶 **Walking Character Preloader** | `fromanother.love`-inspired cream loader (`#fff3e6` background): a CSS-animated SVG figure in true profile view with natural bipedal gait (arm swing opposite to legs, head bob, foot contact, ground shadow pulsing), a welcome message, a GSAP percentage counter (0→100%), and a thin warm-gradient progress bar — all fading away to reveal the portfolio. |
+| 🪐 **Antigravity Hero Section** | Character-level floating text (`AntigravityText`) with independent per-character drift physics; word-level gradient headings (`FloatingHeading`) that bob in zero-gravity with shimmer; cursor-following spotlight; upward-shooting antigravity particle trail (Canvas 2D); ambient `GravityDebris` particles rising from below; parallax orbs; magnetic `MagneticBtn` with idle gravity float; a vertical "SAMI" watermark; and `SketchDivider` SVG editorial wave breaks. |
+| 🖱️ **Dual-Ring Custom Cursor** | Glowing accent dot + lagging outer ring (custom `CursorDot`) with the global antigravity particle trail canvas (particles always float **up**). |
+| 🌊 **Smooth Scrolling** | Studio-grade fluid scrolling powered by `@studio-freight/lenis` integrated with GSAP ScrollTrigger via a `scrollerProxy`. |
+| ✨ **Cinematic Animations** | Blur-to-clear entrance animations and scroll-triggered reveals powered by GSAP ScrollTrigger. |
+| 📂 **Interactive Projects** | Dynamic project cards fetched live from the CMS with hover effects and gradient backgrounds. |
+| 🚀 **Horizontal Pin Scroll** | Unique scrolling mechanics for the Skills section with expanding active cards and Devicon-powered tech stack pills. |
+| 📢 **Marquee Ticker** | Auto-scrolling ticker strip for visual flair between sections. |
+| 💡 **CTA Banner** | Scroll-animated call-to-action section with glassmorphism styling. |
+| ⏱️ **Live IST Clock** | A ticking, real-time precise clock embedded in the footer. |
+| 🌗 **Dark / Light Theme** | Full theme toggle with persistent preference stored in `localStorage`, applied from the preloader through every section. |
 
 ### For the Owner (Admin Dashboard)
 | Feature | Description |
 |---------|-------------|
-| 🔐 **Secure Login** | Password-protected admin dashboard with encrypted authentication |
-| 📊 **Overview Dashboard** | At-a-glance summary of all portfolio content |
-| 📦 **Manage Projects** | Add, edit, delete, reorder (drag-and-drop via dnd-kit), and toggle visibility of portfolio projects |
-| 🛠️ **Update Skills** | Add new technologies, proficiency levels, categories, and toggle visibility |
-| 📖 **Edit Bio & Timeline** | Keep your journey and experience completely up-to-date with drag-and-drop reordering |
-| 🎨 **Hero Editor** | Customize hero section content directly from the dashboard |
-| 🔗 **Social Links Editor** | Manage all your social media links in one place |
-| ⚡ **Instant Sync** | Changes made in the dashboard instantly update the public-facing portfolio |
+| 🔐 **Secure Login** | Password-protected admin dashboard at `/admin/login` with encrypted authentication and rate limiting. |
+| 📊 **Overview Dashboard** | At-a-glance summary of all portfolio content. |
+| 📦 **Manage Projects** | Add, edit, delete, reorder (drag-and-drop via `dnd-kit`), and toggle visibility of portfolio projects. |
+| 🛠️ **Update Skills** | Add new technologies, proficiency levels, categories, and toggle visibility. |
+| 📖 **Edit Bio & Timeline** | Keep your journey and experience completely up-to-date with drag-and-drop reordering. |
+| 🎨 **Hero Editor** | Customize hero section content directly from the dashboard. |
+| 🔗 **Social Links Editor** | Manage all your social media links in one place. |
+| ⚡ **Instant Sync** | Changes made in the dashboard instantly update the public-facing portfolio via the live API. |
 
 ### Backend Architecture & Security
 | Feature | Description |
 |---------|-------------|
-| 🔐 **Two-Token JWT Auth** | Stateless, highly secure authentication using Access and HttpOnly Refresh tokens |
-| 🛡️ **XSS & CSRF Protection** | Tokens are stored properly in memory and strictly isolated cookies |
-| 🔑 **Password Hashing** | Bcrypt with 12 salt rounds ensures maximum database security |
-| ⏱️ **Rate Limiting** | Login endpoint is rate-limited to 5 attempts per 15 minutes per IP |
-| ✅ **Input Validation** | All POST/PUT endpoints validated with express-validator (type, length, format checks) |
-| 🪖 **HTTP Security Headers** | Helmet.js sets 11+ security headers (HSTS, X-Frame-Options, CSP, etc.) |
-| 🗄️ **MongoDB Database** | Fast, flexible NoSQL schema using Mongoose ORM |
+| 🔐 **Two-Token JWT Auth** | Stateless, highly secure authentication using short-lived Access Tokens (in memory) and long-lived `HttpOnly` Refresh Tokens (cookies). |
+| 🛡️ **XSS & CSRF Protection** | Tokens stored properly — access token in memory, refresh token in a strictly scoped `HttpOnly` cookie. |
+| 🔑 **Password Hashing** | `bcryptjs` with 12 salt rounds ensures maximum database security. |
+| ⏱️ **Rate Limiting** | Login endpoint limited to 5 attempts per 15 minutes per IP via `express-rate-limit`. |
+| ✅ **Input Validation** | All POST/PUT endpoints validated with `express-validator` (type, length, format checks). |
+| 🪖 **HTTP Security Headers** | `Helmet.js` sets 11+ security headers (HSTS, X-Frame-Options, CSP, etc.). |
+| 📋 **Request Logging** | HTTP request logging in development via `morgan`. |
+| 🗄️ **MongoDB Database** | Fast, flexible NoSQL schema using `Mongoose` ORM. |
 
 ---
 
@@ -132,14 +133,14 @@ flowchart TD
 
 ### ⚙️ How It Works — Step by Step
 
-1. **Visitor opens the website** → A cinematic walking character preloader plays: a profile-view SVG figure walks with natural limb gait on a warm cream background, a percentage counter ticks 0→100%, and a thin progress bar fills — then everything fades away.
-2. **Homepage appears** → The React frontend loads with antigravity-themed GSAP animations: character-level floating text, gravity debris rising upward, upward-shooting particle trails, and smooth scrolling via Lenis.
-3. **Data is fetched** → The frontend requests the latest bio, projects, and skills from the Express backend.
+1. **Visitor opens the website** → A cinematic walking character preloader plays: a welcome message fades in first, then a profile-view CSS-animated SVG figure walks with natural limb gait on a warm cream background (`#fff3e6`), a percentage counter ticks 0→100% in sync with a warm-gradient progress bar — then everything fades away.
+2. **Homepage appears** → The React frontend loads with antigravity-themed GSAP animations: character-level floating text (`AntigravityText`), ambient gravity debris rising upward (`GravityDebris`), upward-shooting antigravity particle trails (Canvas 2D), and smooth scrolling via Lenis.
+3. **Data is fetched** → The frontend requests the latest bio, projects, and skills from the Express backend via Axios (with automatic token-refresh interceptors).
 4. **Backend queries the database** → Express talks to MongoDB to retrieve all visible data.
-5. **Antigravity UI is rendered** → GSAP handles the entrance animations with zero-gravity physics, and Lenis takes over scroll hijacking for fluid motion.
+5. **Antigravity UI is rendered** → GSAP handles entrance animations with zero-gravity physics, and Lenis + ScrollTrigger take over for fluid motion.
 6. **You (Admin) log in** → You go to `/admin/login`. Your password is verified against the bcrypt hash in the database.
 7. **Tokens are issued** → You receive a short-lived Access Token in memory and a secure `HttpOnly` Refresh Token in your browser cookies.
-8. **You manage content** → Every time you add a project or edit a skill, the backend verifies your Access Token before making the change in MongoDB. Drag-and-drop reordering is powered by dnd-kit.
+8. **You manage content** → Every time you add a project or edit a skill, the backend verifies your Access Token before making the change in MongoDB. Drag-and-drop reordering is powered by `@dnd-kit`.
 
 ---
 
@@ -147,20 +148,24 @@ flowchart TD
 
 | Layer | Technology | Why? |
 |-------|-----------|------|
-| **Frontend Framework** | React.js (Vite) | Lightning fast HMR and component-based UI |
-| **Styling** | Tailwind CSS | Rapid, utility-first custom design system |
-| **Animations** | GSAP + CSS Keyframes | Industry-standard scroll, entrance & antigravity float animations |
+| **Frontend Framework** | React.js (Vite 5) | Lightning-fast HMR and component-based UI |
+| **Styling** | Tailwind CSS v3 + CSS Custom Properties | Utility-first with CSS variables for theme system |
+| **Animations** | GSAP 3 + ScrollTrigger + CSS Keyframes | Industry-standard scroll, entrance & antigravity float animations |
 | **Particle Effects** | Canvas 2D API | High-performance cursor-following antigravity particle trail system |
-| **Smooth Scroll** | Lenis (@studio-freight) | Buttery smooth, lightweight scroll hijacking |
-| **Drag & Drop** | @dnd-kit | Accessible, performant drag-and-drop reordering for admin CMS |
+| **3D / WebGL** | Three.js | Available as a dependency for advanced visual effects |
+| **Smooth Scroll** | `@studio-freight/lenis` | Buttery smooth, lightweight scroll hijacking |
+| **Drag & Drop** | `@dnd-kit/core` + `@dnd-kit/sortable` | Accessible, performant drag-and-drop reordering for admin CMS |
 | **Icons** | Lucide React + Devicons | Consistent icon library + colored tech stack icons |
-| **Input Validation** | express-validator | Server-side validation and sanitization for all API endpoints |
+| **HTTP Client** | Axios | API calls with automatic JWT refresh interceptor |
+| **Input Validation** | `express-validator` | Server-side validation and sanitization for all API endpoints |
 | **Backend** | Node.js + Express | Fast, JavaScript-native REST API |
-| **Database** | MongoDB + Mongoose | Flexible NoSQL document storage perfectly suited for CMS |
-| **Auth** | JWT + bcryptjs | Bulletproof, stateless secure authentication |
-| **Security Headers** | Helmet.js | Automatic HTTP security headers (HSTS, CSP, XSS filter, etc.) |
-| **Notifications** | react-hot-toast | Elegant toast notifications for admin actions |
-| **Routing** | react-router-dom v6 | Declarative, nested routing with protected routes |
+| **Request Logging** | Morgan | HTTP request logging for development debugging |
+| **Database** | MongoDB + Mongoose | Flexible NoSQL document storage perfectly suited for a CMS |
+| **Auth** | JWT (`jsonwebtoken`) + `bcryptjs` | Bulletproof, stateless secure authentication |
+| **Security Headers** | `Helmet.js` | Automatic HTTP security headers (HSTS, CSP, XSS filter, etc.) |
+| **Rate Limiting** | `express-rate-limit` | Brute-force protection on auth endpoints |
+| **Notifications** | `react-hot-toast` | Elegant toast notifications for admin actions |
+| **Routing** | `react-router-dom` v6 | Declarative, nested routing with protected routes |
 
 ---
 
@@ -172,7 +177,7 @@ AI_PORTFOLIO/
 ├── 📁 backend/
 │   ├── 📁 config/
 │   │   ├── db.js               ← MongoDB connection setup
-│   │   └── jwt.js              ← JWT token configuration
+│   │   └── jwt.js              ← JWT token configuration & helpers
 │   ├── 📁 controllers/
 │   │   ├── auth.controller.js  ← Login, refresh, logout, session check
 │   │   ├── portfolio.controller.js ← Bio & social links CRUD
@@ -198,7 +203,7 @@ AI_PORTFOLIO/
 │   │   └── timeline.routes.js  ← /api/timeline/*
 │   ├── 📁 scripts/
 │   │   └── seed.js             ← Populates DB with initial admin & demo data
-│   ├── server.js               ← Main Express entry point
+│   ├── server.js               ← Main Express entry point (morgan + helmet + cors)
 │   ├── .env                    ← Secret keys & DB URI (git-ignored)
 │   └── .env.example            ← Example environment configuration
 │
@@ -210,33 +215,36 @@ AI_PORTFOLIO/
 │   │   │   ├── ProtectedRoute.jsx   ← Auth guard wrapper
 │   │   │   └── 📁 pages/
 │   │   │       ├── DashboardOverview.jsx ← At-a-glance content summary
-│   │   │       ├── ProjectsManager.jsx  ← Projects CRUD + drag reorder
-│   │   │       ├── SkillsManager.jsx    ← Skills CRUD + visibility
-│   │   │       ├── TimelineManager.jsx  ← Timeline CRUD + drag reorder
-│   │   │       ├── AboutEditor.jsx      ← Bio text editor
-│   │   │       ├── HeroEditor.jsx       ← Hero section content editor
-│   │   │       └── SocialEditor.jsx     ← Social links manager
+│   │   │       ├── ProjectsManager.jsx   ← Projects CRUD + dnd-kit reorder
+│   │   │       ├── SkillsManager.jsx     ← Skills CRUD + visibility toggle
+│   │   │       ├── TimelineManager.jsx   ← Timeline CRUD + dnd-kit reorder
+│   │   │       ├── AboutEditor.jsx       ← Bio text editor
+│   │   │       ├── HeroEditor.jsx        ← Hero section content editor
+│   │   │       └── SocialEditor.jsx      ← Social links manager
 │   │   ├── 📁 api/
-│   │   │   ├── axiosInstance.js     ← Axios config with token refresh interceptor
-│   │   │   ├── auth.api.js         ← Auth API calls
-│   │   │   ├── portfolio.api.js    ← Portfolio API calls
-│   │   │   ├── projects.api.js     ← Projects API calls
-│   │   │   ├── skills.api.js       ← Skills API calls
-│   │   │   └── timeline.api.js     ← Timeline API calls
+│   │   │   ├── axiosInstance.js     ← Axios config with silent token-refresh interceptor
+│   │   │   ├── auth.api.js          ← Auth API calls
+│   │   │   ├── portfolio.api.js     ← Portfolio API calls
+│   │   │   ├── projects.api.js      ← Projects API calls
+│   │   │   ├── skills.api.js        ← Skills API calls
+│   │   │   └── timeline.api.js      ← Timeline API calls
 │   │   ├── 📁 context/
 │   │   │   ├── AuthContext.jsx      ← JWT auth state & token management
 │   │   │   ├── PortfolioContext.jsx ← Global portfolio data provider
 │   │   │   └── ThemeContext.jsx     ← Dark/light theme with localStorage
 │   │   ├── 📁 portfolio/
 │   │   │   ├── 📁 components/
-│   │   │   │   ├── IntroScreen.jsx   ← Walking character preloader (CSS-animated SVG)
+│   │   │   │   ├── IntroScreen.jsx   ← Walking character preloader (CSS-animated SVG, cream bg, GSAP timeline)
 │   │   │   │   ├── Navbar.jsx        ← Sticky nav with icon tabs & active section tracking
 │   │   │   │   ├── Footer.jsx        ← Live IST clock + attribution
-│   │   │   │   ├── CustomCursor.jsx  ← Global custom cursor provider
+│   │   │   │   ├── CustomCursor.jsx  ← Global custom cursor provider (CursorProvider)
 │   │   │   │   ├── MarqueeTicker.jsx ← Auto-scrolling text ticker
 │   │   │   │   └── ThemeToggle.jsx   ← Dark/light mode switch
 │   │   │   ├── 📁 sections/
-│   │   │   │   ├── HeroSection.jsx      ← Antigravity hero (floating text, particles, debris)
+│   │   │   │   ├── HeroSection.jsx      ← Full antigravity hero: AntigravityText, FloatingHeading,
+│   │   │   │   │                           MagneticBtn (idle float + magnetic pull), ParticleTrail (Canvas),
+│   │   │   │   │                           GravityDebris, SketchDivider, CursorDot (dot + ring),
+│   │   │   │   │                           spotlight orbs, SAMI watermark, stats bar
 │   │   │   │   ├── AboutSection.jsx     ← Bio, stats, and journey overview
 │   │   │   │   ├── SkillsSection.jsx    ← Horizontal pin-scroll skill cards
 │   │   │   │   ├── ProjectsSection.jsx  ← Dynamic project showcase
@@ -244,10 +252,10 @@ AI_PORTFOLIO/
 │   │   │   │   ├── CTABannerSection.jsx ← Call-to-action with glassmorphism
 │   │   │   │   └── ContactSection.jsx   ← Contact form
 │   │   │   └── 📁 data/
-│   │   │       └── projects.js          ← Fallback project data
-│   │   ├── App.jsx               ← Main routing & GSAP/Lenis setup
+│   │   │       └── projects.js          ← FALLBACK_PROJECTS — static data when API is unavailable
+│   │   ├── App.jsx               ← Main routing, GSAP/Lenis setup, IntroScreen orchestration
 │   │   ├── main.jsx              ← React DOM entry point
-│   │   └── index.css             ← Tailwind, CSS variables & custom scrollbar
+│   │   └── index.css             ← Tailwind directives, CSS variables & custom scrollbar
 │   │
 │   ├── index.html                ← Entry HTML with Google Fonts
 │   ├── vite.config.js            ← Vite bundler config
@@ -256,7 +264,7 @@ AI_PORTFOLIO/
 │   └── package.json              ← Frontend dependencies
 │
 ├── 📁 assets/
-│   └── 📁 screenshots/          ← README screenshots (hero, skills, projects, etc.)
+│   └── 📁 screenshots/           ← README screenshots
 │
 ├── .gitignore
 └── README.md                     ← You are here!
@@ -282,7 +290,11 @@ npm install
 
 Copy the provided example environment file to create your own `.env` file:
 ```bash
+# Linux / macOS
 cp .env.example .env
+
+# Windows (PowerShell)
+Copy-Item .env.example .env
 ```
 
 Open `backend/.env` and configure:
@@ -293,6 +305,7 @@ REFRESH_SECRET=<generate-a-different-random-64-byte-hex>
 ADMIN_USERNAME=sami
 ADMIN_PASSWORD=your_secure_password
 CLIENT_URL=http://localhost:5173
+PORT=5000
 ```
 
 > 💡 **Tip**: Generate secure JWT secrets with:
@@ -302,7 +315,8 @@ CLIENT_URL=http://localhost:5173
 
 Seed the database with initial data:
 ```bash
-node scripts/seed.js
+npm run seed
+# or: node scripts/seed.js
 ```
 
 Start the backend server:
@@ -332,7 +346,7 @@ npm run dev
 |--------|----------|--------------|-----------|
 | `POST` | `/api/auth/login` | Authenticate admin & generate tokens | ❌ |
 | `POST` | `/api/auth/refresh`| Rotate access token via HttpOnly cookie | ❌ |
-| `POST` | `/api/auth/logout` | Clear refresh token cookies | ❌ |
+| `POST` | `/api/auth/logout` | Clear refresh token cookie | ❌ |
 | `GET`  | `/api/auth/me`   | Verify session and get admin profile | ✅ |
 | `GET`  | `/api/portfolio` | Get main bio and social links | ❌ |
 | `PUT`  | `/api/portfolio` | Update main bio and social links | ✅ |
@@ -363,19 +377,21 @@ npm run dev
 | Backend | Render / Railway | Hosts the Express.js REST API |
 | Database | MongoDB Atlas | Cloud-hosted NoSQL database |
 
+> **Note**: Set `CLIENT_URL` in your backend `.env` to your Vercel deployment URL for correct CORS configuration on production.
+
 ---
 
 ## 🧠 What I Learned Building This
 
-- ✅ How to build **antigravity text animations** with GSAP — character-level and word-level floating physics where each element drifts independently in zero-gravity.
-- ✅ How to create **CSS-animated SVG walking figures** with natural bipedal gait: arm swing opposite to legs, head bob, foot contact, and ground shadow pulsing.
-- ✅ How to build **upward-shooting particle trail systems** using the Canvas 2D API with reversed gravity physics and radial glow gradients.
-- ✅ How to construct robust, high-performance scroll animations using **GSAP ScrollTrigger** and **Lenis**, including horizontal pin-scroll sections.
-- ✅ How to build a custom Content Management System (**CMS**) from scratch with **drag-and-drop reordering** (dnd-kit) to completely decouple content from code.
-- ✅ How to implement highly secure authentication using **HTTP-only cookies** and a dual-token (Access + Refresh) architecture with automatic token refresh via Axios interceptors.
-- ✅ How to design editorial-quality UI elements: sketch-line SVG dividers, magnetic buttons with idle float, gravity debris particles, and ambient parallax orbs.
+- ✅ How to build **character-level antigravity animations** with GSAP (`AntigravityText`) — each character drifts independently with randomized float distance, lateral drift, and rotation in zero gravity.
+- ✅ How to build **word-level floating gradient headings** (`FloatingHeading`) with per-word `WebkitBackgroundClip: 'text'` gradients that bob independently — a technique used on premium editorial sites.
+- ✅ How to create **CSS-animated SVG walking figures** in true profile view with natural bipedal gait: arm swing opposite to legs, head bob, foot contact, and ground shadow pulsing.
+- ✅ How to build **upward-shooting antigravity particle trail systems** using the Canvas 2D API with reversed gravity physics (`vy` always negative) and radial glow gradients.
+- ✅ How to construct robust, high-performance scroll animations using **GSAP ScrollTrigger** and **Lenis**, including horizontal pin-scroll sections and `scrollerProxy` integration.
+- ✅ How to build a custom Content Management System (**CMS**) from scratch with **drag-and-drop reordering** (`@dnd-kit`) to completely decouple content from code.
+- ✅ How to implement highly secure authentication using **HTTP-only cookies** and a dual-token (Access + Refresh) architecture with silent token refresh via Axios interceptors.
 - ✅ How to design a complete **dark/light theme system** with CSS custom properties and React context that extends from the preloader through every section.
-- ✅ How to integrate **Devicon** for colored technology icons in interactive skill cards with hover tooltips.
+- ✅ How to compose multiple canvas-based effects (particle trail, dual-ring cursor dot) alongside GSAP animations without performance conflicts.
 
 ---
 

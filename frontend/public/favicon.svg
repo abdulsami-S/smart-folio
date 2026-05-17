@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Background: Rounded square in dark purple -->
+  <rect width="64" height="64" rx="14" fill="#381932"/>
+
+  <!-- Gear icon top-right corner -->
+  <g transform="translate(48, 8) scale(0.55)">
+    <path d="M10 0l2.2 3.8 4.3.6-3.1 3 .7 4.3L10 9.5 5.9 11.7l.7-4.3-3.1-3 4.3-.6z" fill="#e8a87c" opacity="0.9"/>
+    <circle cx="10" cy="6" r="2.5" fill="#381932"/>
+  </g>
+
+  <!-- Body / torso — orange shirt -->
+  <rect x="20" y="36" width="24" height="16" rx="4" fill="#c9704a"/>
+
+  <!-- Neck -->
+  <rect x="28" y="32" width="8" height="6" rx="2" fill="#e8a87c"/>
+
+  <!-- Head — 3D style with lighter face area -->
+  <rect x="22" y="12" width="20" height="20" rx="6" fill="#e8a87c"/>
+  <!-- Face shadow for 3D depth -->
+  <rect x="22" y="12" width="10" height="20" rx="6" fill="#d4855a" opacity="0.3"/>
+
+  <!-- Dark purple helmet -->
+  <path d="M22 20 Q22 8, 32 8 Q42 8, 42 20 Q42 14, 32 12 Q22 14, 22 20Z" fill="#381932"/>
+  <!-- Helmet visor edge -->
+  <rect x="22" y="18" width="20" height="3" rx="1.5" fill="#2d1228"/>
+  <!-- Orange dot on helmet -->
+  <circle cx="32" cy="13" r="2" fill="#c9704a"/>
+
+  <!-- Glasses -->
+  <g fill="none" stroke="#381932" stroke-width="1.8" stroke-linecap="round">
+    <!-- Left lens -->
+    <rect x="24" y="21" width="7" height="5" rx="2" fill="rgba(56,25,50,0.15)"/>
+    <!-- Right lens -->
+    <rect x="33" y="21" width="7" height="5" rx="2" fill="rgba(56,25,50,0.15)"/>
+    <!-- Bridge -->
+    <line x1="31" y1="23.5" x2="33" y2="23.5"/>
+  </g>
+
+  <!-- Subtle smile -->
+  <path d="M29 28 Q32 30, 35 28" fill="none" stroke="#381932" stroke-width="1" stroke-linecap="round"/>
+
+  <!-- Left arm -->
+  <rect x="14" y="38" width="7" height="4" rx="2" fill="#e8a87c"/>
+  <!-- Right arm -->
+  <rect x="43" y="38" width="7" height="4" rx="2" fill="#e8a87c"/>
+
+  <!-- Laptop -->
+  <g transform="translate(16, 44)">
+    <!-- Laptop base -->
+    <rect x="0" y="8" width="32" height="3" rx="1.5" fill="#fff3e6" opacity="0.9"/>
+    <!-- Laptop screen -->
+    <rect x="2" y="0" width="28" height="9" rx="2" fill="#2d1228"/>
+    <!-- Screen bezel glow -->
+    <rect x="4" y="1.5" width="24" height="6" rx="1" fill="#381932"/>
+    <!-- </> code symbol on screen -->
+    <text x="16" y="6.5" text-anchor="middle" font-family="monospace" font-size="5" font-weight="700" fill="#c9704a">&lt;/&gt;</text>
+  </g>
+</svg>
