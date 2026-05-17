@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+import { gsap } from 'gsap';
 
 /* ─── SAKAZUKI.IO-STYLE THREE.JS 3D PARTICLE BACKGROUND ─────────────────────
  * Premium constellation particle field with:
@@ -7,6 +8,8 @@ import * as THREE from 'three';
  *  - Dynamic constellation lines connecting nearby particles
  *  - 3 wireframe geometric shapes (icosahedron, torus, octahedron)
  *  - Smooth mouse-driven parallax on the entire scene
+ *  - Scroll drift — world drifts upward as user scrolls down
+ *  - Section transition reactions (rotation + shape pulse + particle flash)
  *  - Additive blending for soft glow aesthetic
  *  - Full cleanup on unmount
  *
@@ -48,6 +51,10 @@ const ThreeBackground = ({ isDark }) => {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(0x000000, 0);
+    // FIX #2 — Force canvas to stretch full width/height with no gaps
+    renderer.domElement.style.width = '100%';
+    renderer.domElement.style.height = '100%';
+    renderer.domElement.style.display = 'block';
     mount.appendChild(renderer.domElement);
 
     /* ── Master group — everything rotates together for parallax ── */
@@ -56,9 +63,10 @@ const ThreeBackground = ({ isDark }) => {
 
     /* ══════════════════════════════════════════════════════════════
        PARTICLES — 320 with per-particle weighted colors
+       FIX #1 — Larger spread (110), bigger size (0.28), higher opacity (0.92)
        ══════════════════════════════════════════════════════════════ */
     const P_COUNT = 320;
-    const SPREAD = 80;
+    const SPREAD = 110;
     const positions = new Float32Array(P_COUNT * 3);
     const colors = new Float32Array(P_COUNT * 3);
     const sizes = new Float32Array(P_COUNT);
@@ -83,18 +91,19 @@ const ThreeBackground = ({ isDark }) => {
 
       // Slight size variation — rare cream particles are a touch bigger
       sizes[i] = color.getHex() === 0xfff3e6
-        ? 0.22 + Math.random() * 0.08
-        : 0.10 + Math.random() * 0.12;
+        ? 0.30 + Math.random() * 0.10
+        : 0.16 + Math.random() * 0.14;
     }
 
     const pGeo = new THREE.BufferGeometry();
     pGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     pGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
+    const BASE_OPACITY = isDark ? 0.92 : 0.7;
     const pMat = new THREE.PointsMaterial({
-      size: isDark ? 0.18 : 0.14,
+      size: isDark ? 0.28 : 0.20,
       transparent: true,
-      opacity: isDark ? 0.8 : 0.6,
+      opacity: BASE_OPACITY,
       sizeAttenuation: true,
       blending: THREE.AdditiveBlending,
       vertexColors: true,
@@ -104,10 +113,10 @@ const ThreeBackground = ({ isDark }) => {
     world.add(new THREE.Points(pGeo, pMat));
 
     /* ══════════════════════════════════════════════════════════════
-       CONSTELLATION LINES
+       CONSTELLATION LINES — FIX #1: MAX_DIST 7→10 for denser network
        ══════════════════════════════════════════════════════════════ */
-    const MAX_DIST = 7;
-    const MAX_LINES = 500;
+    const MAX_DIST = 10;
+    const MAX_LINES = 600;
     const linePos = new Float32Array(MAX_LINES * 6);
     const lineColors = new Float32Array(MAX_LINES * 6);
     const lGeo = new THREE.BufferGeometry();
@@ -117,7 +126,7 @@ const ThreeBackground = ({ isDark }) => {
 
     const lMat = new THREE.LineBasicMaterial({
       transparent: true,
-      opacity: isDark ? 0.14 : 0.09,
+      opacity: isDark ? 0.16 : 0.10,
       blending: THREE.AdditiveBlending,
       vertexColors: true,
       depthWrite: false,
@@ -171,6 +180,50 @@ const ThreeBackground = ({ isDark }) => {
     window.addEventListener('resize', onResize);
 
     /* ══════════════════════════════════════════════════════════════
+       FIX #4 — SECTION TRANSITION: Listen for 'sectionChange' custom event
+       On section enter: rotate scene, pulse shapes, flash particle opacity
+       ══════════════════════════════════════════════════════════════ */
+    const onSectionChange = () => {
+      // Subtle scene rotation
+      gsap.to(world.rotation, {
+        z: world.rotation.z + 0.15,
+        duration: 1.5,
+        ease: 'power2.inOut',
+      });
+
+      // Pulse wireframe shapes: scale up 1.2x then back
+      shapes.forEach((s) => {
+        gsap.to(s.scale, {
+          x: 1.2, y: 1.2, z: 1.2,
+          duration: 0.6,
+          ease: 'elastic.out(1, 0.4)',
+          onComplete: () => {
+            gsap.to(s.scale, {
+              x: 1, y: 1, z: 1,
+              duration: 0.8,
+              ease: 'power2.out',
+            });
+          },
+        });
+      });
+
+      // Flash particle opacity: brighten momentarily then settle
+      gsap.to(pMat, {
+        opacity: 1.0,
+        duration: 0.4,
+        ease: 'power2.out',
+        onComplete: () => {
+          gsap.to(pMat, {
+            opacity: BASE_OPACITY,
+            duration: 1.0,
+            ease: 'power2.inOut',
+          });
+        },
+      });
+    };
+    window.addEventListener('sectionChange', onSectionChange);
+
+    /* ══════════════════════════════════════════════════════════════
        ANIMATION LOOP
        ══════════════════════════════════════════════════════════════ */
     const smoothMouse = { x: 0, y: 0 };
@@ -185,6 +238,9 @@ const ThreeBackground = ({ isDark }) => {
       smoothMouse.y += (mouseTarget.current.y - smoothMouse.y) * 0.03;
       world.rotation.y =  smoothMouse.x * 0.18;
       world.rotation.x = -smoothMouse.y * 0.12;
+
+      // FIX #1 — Scroll drift: scene drifts upward as user scrolls
+      world.position.y = -window.scrollY * 0.010;
 
       // ── Update particles ──
       const p = pGeo.attributes.position.array;
@@ -250,6 +306,7 @@ const ThreeBackground = ({ isDark }) => {
     return () => {
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('resize', onResize);
+      window.removeEventListener('sectionChange', onSectionChange);
       cancelAnimationFrame(animId);
 
       // Dispose geometries and materials
@@ -277,6 +334,7 @@ const ThreeBackground = ({ isDark }) => {
         height: '100vh',
         zIndex: 0,
         pointerEvents: 'none',
+        overflow: 'hidden',
       }}
     />
   );

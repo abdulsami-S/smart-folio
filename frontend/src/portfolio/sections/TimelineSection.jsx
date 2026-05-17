@@ -43,6 +43,8 @@ const FALLBACK_TIMELINE = [
 
 const TimelineItem = ({ entry, index, isDark }) => {
   const itemRef = useRef(null);
+  const iconRef = useRef(null);
+  const wrapperRef = useRef(null);
   const isEven = index % 2 === 0;
 
   const getIcon = () => {
@@ -55,22 +57,75 @@ const TimelineItem = ({ entry, index, isDark }) => {
   };
 
   useEffect(() => {
-    if (!itemRef.current) return;
+    if (!itemRef.current || !wrapperRef.current) return;
+
     const ctx = gsap.context(() => {
+      /* ── FIX #3: Rich card entrance ──
+       * Animate: opacity 0→1, y 50→0, rotateX 15→0, blur 12px→0
+       * Stagger each card by index * 0.15
+       */
       gsap.fromTo(itemRef.current, {
-        opacity: 0, x: 60, filter: "blur(8px)"
+        opacity: 0,
+        y: 50,
+        rotateX: 15,
+        filter: 'blur(12px)',
       }, {
-        opacity: 1, x: 0, filter: "blur(0px)",
-        duration: 1, ease: "power4.out",
-        scrollTrigger: { trigger: itemRef.current, start: "top 80%" }
+        opacity: 1,
+        y: 0,
+        rotateX: 0,
+        filter: 'blur(0px)',
+        duration: 1.1,
+        delay: index * 0.15,
+        ease: 'power4.out',
+        scrollTrigger: {
+          trigger: wrapperRef.current,
+          start: 'top 82%',
+        },
+        onComplete: () => {
+          /* ── FIX #3: Continuous subtle float after entrance ── */
+          gsap.to(itemRef.current, {
+            y: -6,
+            duration: 2 + index * 0.3,
+            repeat: -1,
+            yoyo: true,
+            ease: 'sine.inOut',
+          });
+        },
       });
-    }, itemRef);
+
+      /* ── FIX #3: Icon circle pop-in with elastic ease ── */
+      if (iconRef.current) {
+        gsap.fromTo(iconRef.current, {
+          scale: 0,
+          opacity: 0,
+        }, {
+          scale: 1,
+          opacity: 1,
+          duration: 0.8,
+          delay: index * 0.15 + 0.2,
+          ease: 'elastic.out(1, 0.5)',
+          scrollTrigger: {
+            trigger: wrapperRef.current,
+            start: 'top 82%',
+          },
+        });
+      }
+    }, wrapperRef);
+
     return () => ctx.revert();
-  }, []);
+  }, [index]);
 
   return (
-    <div className={`relative flex items-center justify-between md:justify-normal ${isEven ? 'md:flex-row-reverse' : ''} mb-28 last:mb-0`} style={{ perspective: "1000px" }}>
-      <div className="absolute left-0 md:left-1/2 -translate-x-1/2 flex items-center justify-center w-14 h-14 rounded-full border-2 z-20 shadow-[0_0_20px_rgba(201,112,74,0.3)] border-[var(--accent)]" style={{ backgroundColor: 'var(--bg-card)' }}>
+    <div
+      ref={wrapperRef}
+      className={`relative flex items-center justify-between md:justify-normal ${isEven ? 'md:flex-row-reverse' : ''} mb-28 last:mb-0`}
+      style={{ perspective: '1000px' }}
+    >
+      <div
+        ref={iconRef}
+        className="absolute left-0 md:left-1/2 -translate-x-1/2 flex items-center justify-center w-14 h-14 rounded-full border-2 z-20 shadow-[0_0_20px_rgba(201,112,74,0.3)] border-[var(--accent)]"
+        style={{ backgroundColor: 'var(--bg-card)', transform: 'scale(0)', opacity: 0 }}
+      >
         {getIcon()}
       </div>
       <div 
@@ -114,6 +169,14 @@ const Timeline = ({ timeline }) => {
       gsap.fromTo(lineRef.current, { scaleY: 0 }, {
         scaleY: 1, ease: "none",
         scrollTrigger: { trigger: sectionRef.current, start: "top 60%", end: "bottom 80%", scrub: 1 }
+      });
+
+      /* ── FIX #4: Emit sectionChange event when Timeline enters viewport ── */
+      ScrollTrigger.create({
+        trigger: sectionRef.current,
+        start: 'top 60%',
+        onEnter: () => window.dispatchEvent(new CustomEvent('sectionChange')),
+        once: true,
       });
     }, sectionRef);
     return () => ctx.revert();
