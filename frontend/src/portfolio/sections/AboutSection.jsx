@@ -111,7 +111,7 @@ const About = ({ portfolio }) => {
   const coreSkills = ['Python', 'React', 'AI/ML', 'Flask', 'Node.js'];
 
   return (
-    <section ref={sectionRef} id="about" className="py-40 relative z-10 bg-[var(--bg)]">
+    <section ref={sectionRef} id="about" className="py-40 relative" style={{ zIndex: 1, backgroundColor: 'transparent' }}>
       <div className="container mx-auto px-6 lg:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-[80px] items-center">
           
@@ -141,9 +141,11 @@ const About = ({ portfolio }) => {
                 className="w-full h-full rounded-[2rem] flex flex-col relative overflow-hidden transition-transform duration-300 ease-out"
                 style={{ 
                   transformStyle: 'preserve-3d',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
                   background: isDark 
-                    ? 'linear-gradient(165deg, #2d1228, #381932, #44203e)' 
-                    : 'linear-gradient(165deg, #f0d4b0, #eedfc8, #e0c090)'
+                    ? 'rgba(45,18,40,0.85)' 
+                    : 'rgba(238,223,200,0.85)',
                 }}
               >
                 {/* Dot grid texture */}

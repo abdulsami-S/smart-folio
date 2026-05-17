@@ -7,7 +7,9 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Loader2 } from 'lucide-react';
 
-import { ThemeProvider } from './context/ThemeContext';
+import ThreeBackground from './portfolio/components/ThreeBackground';
+
+import { ThemeProvider, ThemeContext } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { PortfolioProvider, PortfolioContext } from './context/PortfolioContext';
 
@@ -43,6 +45,8 @@ gsap.registerPlugin(ScrollTrigger);
 
 const PortfolioView = () => {
   const { portfolio, projects, skills, timeline, loading } = useContext(PortfolioContext);
+  const { theme } = useContext(ThemeContext);
+  const isDark = theme === 'dark';
   const [introComplete, setIntroComplete] = useState(false);
 
   useEffect(() => {
@@ -87,7 +91,9 @@ const PortfolioView = () => {
   const ready = introComplete && !loading;
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden', backgroundColor: 'var(--bg)' }}>
+    <div style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden' }}>
+      {/* Global 3D particle constellation — fixed behind everything */}
+      <ThreeBackground isDark={isDark} />
       {/* Intro splash — plays on every page load */}
       {!introComplete && (
         <IntroScreen onComplete={() => setIntroComplete(true)} />

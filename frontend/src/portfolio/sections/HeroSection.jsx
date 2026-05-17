@@ -3,7 +3,6 @@ import { gsap } from 'gsap';
 import { Download, ChevronRight, MapPin, Sparkles, ArrowDown } from 'lucide-react';
 import { ThemeContext } from '../../context/ThemeContext';
 import { FALLBACK_PROJECTS } from '../data/projects';
-import ThreeBackground from '../components/ThreeBackground';
 
 /* ─── ANTIGRAVITY CHAR SPLIT ─────────────────────────────────────────────────
  * Splits text into individual character spans so GSAP can animate each
@@ -424,12 +423,9 @@ const Hero = ({ portfolio }) => {
     <section
       ref={heroRef}
       id="hero"
-      className="relative h-screen w-full flex flex-col overflow-hidden bg-[var(--bg)]"
-      style={{ cursor: 'none' }}
+      className="relative h-screen w-full flex flex-col overflow-hidden"
+      style={{ cursor: 'none', zIndex: 1, backgroundColor: 'transparent' }}
     >
-      {/* ── Three.js 3D particle constellation background ── */}
-      <ThreeBackground isDark={isDark} />
-
       {/* ── Cursor effects ── */}
       <CursorDot />
       <ParticleTrail isDark={isDark} />

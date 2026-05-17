@@ -148,7 +148,8 @@ const Skills = () => {
     <section
       ref={sectionRef}
       id="skills"
-      className={`relative bg-[var(--bg)] ${isMobile ? 'py-20 px-4' : 'h-screen overflow-hidden'}`}
+      className={`relative ${isMobile ? 'py-20 px-4' : 'h-screen overflow-hidden'}`}
+      style={{ zIndex: 1, backgroundColor: 'transparent' }}
     >
       {/* HEADER */}
       <div className={`fixed-header ${isMobile ? 'mb-12' : 'absolute top-12 left-20 z-20 pointer-events-none'}`}>
@@ -188,6 +189,11 @@ const Skills = () => {
                 borderStyle: 'solid',
                 borderColor: isActive ? 'var(--accent)' : 'var(--border-sub)',
                 transform: isActive && !isMobile ? 'scale(1.04) translateY(-8px)' : 'none',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+                backgroundColor: isActive
+                  ? (isDark ? 'rgba(79,37,72,0.8)' : 'rgba(238,223,200,0.8)')
+                  : (isDark ? 'rgba(68,32,62,0.7)' : 'rgba(238,223,200,0.7)'),
                 /* Compact height on inactive — just enough for number + title */
                 minHeight: isActive ? '380px' : 'auto',
               }}
