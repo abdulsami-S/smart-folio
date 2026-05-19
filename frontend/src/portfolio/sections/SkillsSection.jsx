@@ -5,7 +5,6 @@ import { ThemeContext } from '../../context/ThemeContext';
 
 gsap.registerPlugin(ScrollTrigger);
 
-/* ─── Devicon slug map — skill name → devicon class string ─────────────────── */
 const DEVICON_MAP = {
   "Flask":             "devicon-flask-original colored",
   "Node.js":           "devicon-nodejs-plain colored",
@@ -36,63 +35,34 @@ const DEVICON_MAP = {
 };
 
 const skillData = [
-  {
-    category: "Backend",
-    description: "Robust server-side systems and REST APIs built for scale and performance.",
-    services: ["Flask", "Node.js", "REST APIs"],
-  },
-  {
-    category: "Data & ML",
-    description: "Machine learning pipelines and geospatial analysis for real-world AI applications.",
-    services: ["Scikit-learn", "GeoPandas", "NumPy", "Pandas", "Rasterio"],
-  },
-  {
-    category: "Databases",
-    description: "Data storage and management across relational and real-time systems.",
-    services: ["MySQL", "SQLite", "Firebase"],
-  },
-  {
-    category: "Frontend",
-    description: "Modern responsive interfaces built with React and vanilla JavaScript.",
-    services: ["React.js", "Leaflet.js", "Vanilla JS", "Responsive Design"],
-  },
-  {
-    category: "Languages",
-    description: "Core programming languages for web apps, ML models and systems.",
-    services: ["Python", "JavaScript", "C++", "SQL", "HTML5", "CSS3"],
-  },
-  {
-    category: "Tools",
-    description: "Professional development workflow, version control and deployment.",
-    services: ["Git", "GitHub", "VS Code", "Postman", "Linux"],
-  }
+  { category: "Backend",   description: "Robust server-side systems and REST APIs built for scale and performance.",                          services: ["Flask","Node.js","REST APIs"] },
+  { category: "Data & ML", description: "Machine learning pipelines and geospatial analysis for real-world AI applications.",                 services: ["Scikit-learn","GeoPandas","NumPy","Pandas","Rasterio"] },
+  { category: "Databases", description: "Data storage and management across relational and real-time systems.",                               services: ["MySQL","SQLite","Firebase"] },
+  { category: "Frontend",  description: "Modern responsive interfaces built with React and vanilla JavaScript.",                              services: ["React.js","Leaflet.js","Vanilla JS","Responsive Design"] },
+  { category: "Languages", description: "Core programming languages for web apps, ML models and systems.",                                   services: ["Python","JavaScript","C++","SQL","HTML5","CSS3"] },
+  { category: "Tools",     description: "Professional development workflow, version control and deployment.",                                 services: ["Git","GitHub","VS Code","Postman","Linux"] },
 ];
 
 const Skills = () => {
-  const sectionRef  = useRef(null);
-  const trackRef    = useRef(null);
+  const sectionRef   = useRef(null);
+  const trackRef     = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isMobile, setIsMobile]       = useState(false);
   const { theme } = useContext(ThemeContext);
   const isDark = theme === 'dark';
 
-  /* ── Responsive check ─────────────────────────────────────────────────────── */
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
   }, []);
 
-  /* ── Horizontal pin-scroll (desktop only) ─────────────────────────────────── */
   useEffect(() => {
     if (isMobile) {
-      ScrollTrigger.getAll().forEach(t => {
-        if (t.vars.trigger === sectionRef.current) t.kill();
-      });
+      ScrollTrigger.getAll().forEach(t => { if (t.vars.trigger === sectionRef.current) t.kill(); });
       return;
     }
-
     const section = sectionRef.current;
     const track   = trackRef.current;
     if (!section || !track) return;
@@ -100,55 +70,58 @@ const Skills = () => {
     const totalScroll = track.scrollWidth - window.innerWidth;
 
     const ctx = gsap.context(() => {
+      // ── Horizontal scroll — scrub:0.4 (was 1) = snappier, faster feel ──
       gsap.to(track, {
         x: -totalScroll,
-        ease: "none",
+        ease: 'none',
         scrollTrigger: {
           trigger: section,
-          start: "top top",
-          end: () => "+=" + totalScroll,
-          scrub: 1,
+          start: 'top top',
+          end: () => '+=' + totalScroll,
+          scrub: 0.4,          // ← was 1 — now 60% faster response
           pin: true,
           anticipatePin: 1,
           onUpdate: (self) => {
             const idx = Math.min(Math.round(self.progress * 5), 5);
             setActiveIndex(idx);
-          }
-        }
+          },
+        },
       });
 
-      gsap.fromTo(section.querySelector('.fixed-header'), {
-        opacity: 0, y: 60, filter: "blur(8px)"
-      }, {
-        opacity: 1, y: 0, filter: "blur(0px)", duration: 1, ease: "power4.out",
-        scrollTrigger: {
-          trigger: section,
-          start: "top 75%",
-          toggleActions: "play none none reverse"
+      // Header entrance
+      gsap.fromTo(section.querySelector('.fixed-header'),
+        { opacity:0, y:60, filter:'blur(8px)' },
+        { opacity:1, y:0, filter:'blur(0px)',
+          duration: 0.7,       // ← was 1 — faster
+          ease: 'power4.out',
+          scrollTrigger: { trigger:section, start:'top 75%', toggleActions:'play none none reverse' },
         }
-      });
+      );
 
-      /* ── Emit sectionChange for ThreeBackground transition effect ── */
+      // sectionChange event for ThreeBackground
       ScrollTrigger.create({
-        trigger: section,
-        start: 'top 60%',
+        trigger: section, start: 'top 60%',
         onEnter: () => window.dispatchEvent(new CustomEvent('sectionChange')),
         once: true,
       });
     }, sectionRef);
 
-    return () => { ctx.revert(); };
+    return () => ctx.revert();
   }, [isMobile]);
 
-  /* ── Staggered bottom-to-top pill entrance when active card changes ────────── */
+  // ── Pill entrance — duration 0.25 (was 0.4), stagger 0.04 (was 0.06) ──
   useEffect(() => {
     const activeCard = document.querySelector('.skills-card-active');
     if (!activeCard) return;
     const pills = activeCard.querySelectorAll('.skill-pill');
-    gsap.fromTo(
-      pills,
-      { y: 24, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.4, stagger: 0.06, ease: 'power3.out', delay: 0.15 }
+    gsap.fromTo(pills,
+      { y:20, opacity:0 },
+      { y:0, opacity:1,
+        duration: 0.25,        // ← was 0.4
+        stagger: 0.04,         // ← was 0.06
+        ease: 'power3.out',
+        delay: 0.08,           // ← was 0.15
+      }
     );
   }, [activeIndex]);
 
@@ -157,16 +130,14 @@ const Skills = () => {
       ref={sectionRef}
       id="skills"
       className={`relative ${isMobile ? 'py-20 px-4' : 'h-screen overflow-hidden'}`}
-      style={{ zIndex: 1, backgroundColor: 'transparent' }}
+      style={{ zIndex:1, backgroundColor:'transparent' }}
     >
       {/* HEADER */}
       <div className={`fixed-header ${isMobile ? 'mb-12' : 'absolute top-12 left-20 z-20 pointer-events-none'}`}>
-        <p className="text-[var(--accent)] text-[0.8rem] tracking-[0.2em] font-bold uppercase mb-2">
-          TECH STACK
-        </p>
-        <h2 className="text-[var(--fg)]" style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem,4vw,3.5rem)', lineHeight: 1, letterSpacing: '-0.02em' }}>
-          <span style={{ fontWeight: 300 }}>Core </span>
-          <span style={{ fontWeight: 700, fontStyle: 'italic', color: 'var(--accent)' }}>Arsenal.</span>
+        <p className="text-[var(--accent)] text-[0.8rem] tracking-[0.2em] font-bold uppercase mb-2">TECH STACK</p>
+        <h2 className="text-[var(--fg)]" style={{ fontFamily:'var(--font-display)',fontSize:'clamp(2rem,4vw,3.5rem)',lineHeight:1,letterSpacing:'-0.02em' }}>
+          <span style={{ fontWeight:300 }}>Core </span>
+          <span style={{ fontWeight:700,fontStyle:'italic',color:'var(--accent)' }}>Arsenal.</span>
         </h2>
       </div>
 
@@ -178,120 +149,59 @@ const Skills = () => {
       >
         {skillData.map((skill, i) => {
           const isActive = isMobile ? true : activeIndex === i;
-
           return (
             <div
               key={i}
-              className={`
-                shrink-0 rounded-[20px] transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]
-                flex flex-col relative overflow-hidden
+              className={`shrink-0 rounded-[20px] flex flex-col relative overflow-hidden
                 ${isMobile ? 'w-full' : 'w-[420px] h-auto'}
-                ${isActive
-                  ? 'shadow-[0_40px_100px_rgba(201,112,74,0.15)] skills-card-active'
-                  : ''}
+                ${isActive ? 'shadow-[0_40px_100px_rgba(201,112,74,0.15)] skills-card-active' : ''}
               `}
               style={{
-                borderWidth: '1px',
-                borderStyle: 'solid',
+                borderWidth:'1px', borderStyle:'solid',
                 borderColor: isActive ? 'var(--accent)' : 'var(--border-sub)',
+                // ── transition 0.3s (was 0.5s) = snappier card switch ──
+                transition: 'all 0.3s cubic-bezier(0.23,1,0.32,1)',
                 transform: isActive && !isMobile ? 'scale(1.04) translateY(-8px)' : 'none',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
+                backdropFilter:'blur(8px)', WebkitBackdropFilter:'blur(8px)',
                 backgroundColor: isActive
-                  ? (isDark ? 'rgba(79,37,72,0.8)' : 'rgba(238,223,200,0.8)')
-                  : (isDark ? 'rgba(68,32,62,0.7)' : 'rgba(238,223,200,0.7)'),
-                /* Compact height on inactive — just enough for number + title */
+                  ? (isDark ? 'rgba(79,37,72,0.85)' : 'rgba(238,223,200,0.85)')
+                  : (isDark ? 'rgba(68,32,62,0.65)' : 'rgba(238,223,200,0.65)'),
                 minHeight: isActive ? '380px' : 'auto',
               }}
             >
               <div className="flex flex-col justify-between h-full p-8">
 
-                {/* ── Number + Category title only ─────────────────────────── */}
+                {/* Number + title */}
                 <div>
                   <div className="flex items-baseline gap-3 mb-4">
-                    <span
-                      className="leading-none select-none"
-                      style={{
-                        fontFamily: 'var(--font-display)',
-                        fontSize: '3rem',
-                        fontWeight: 700,
-                        fontStyle: 'italic',
-                        color: isActive ? 'var(--fg-20)' : 'var(--fg-06)',
-                        transition: 'color 0.5s ease',
-                      }}
-                    >
-                      0{i + 1}
+                    <span style={{ fontFamily:'var(--font-display)',fontSize:'3rem',fontWeight:700,fontStyle:'italic',color: isActive ? 'var(--fg-20)' : 'var(--fg-06)',transition:'color 0.3s ease' }}
+                      className="leading-none select-none">
+                      0{i+1}
                     </span>
-                    <h3
-                      className="text-[var(--fg)] transition-all duration-500"
-                      style={{
-                        fontFamily: 'var(--font-display)',
-                        fontSize: '1.8rem',
-                        fontWeight: 700,
-                        fontStyle: 'italic',
-                        lineHeight: 1.1,
-                      }}
-                    >
+                    <h3 className="text-[var(--fg)]" style={{ fontFamily:'var(--font-display)',fontSize:'1.8rem',fontWeight:700,fontStyle:'italic',lineHeight:1.1,transition:'all 0.3s' }}>
                       {skill.category}
                     </h3>
                   </div>
                 </div>
 
-                {/* ── Expandable details — hidden on inactive cards ─────────── */}
-                <div
-                  className={`transition-all duration-500 overflow-hidden ${isActive ? 'opacity-100 max-h-[400px]' : 'opacity-0 max-h-0 pointer-events-none'}`}
-                >
-                  {/* Accent line */}
-                  <div
-                    className="h-[2px] mb-5 transition-all duration-500"
-                    style={{
-                      width: isActive ? '60px' : '30px',
-                      backgroundColor: isActive ? 'var(--accent)' : 'var(--border-sub)',
-                    }}
-                  />
-                  {/* Description */}
-                  <p style={{ fontSize: '0.95rem', lineHeight: 1.75, color: 'var(--fg-60)', fontWeight: 400 }}>
-                    {skill.description}
-                  </p>
+                {/* Expandable details */}
+                <div className={`overflow-hidden ${isActive ? 'opacity-100 max-h-[400px]' : 'opacity-0 max-h-0 pointer-events-none'}`}
+                  style={{ transition:'all 0.3s ease' }}> {/* ← was 0.5s */}
+                  <div className="h-[2px] mb-5" style={{ width: isActive ? '60px' : '30px', backgroundColor: isActive ? 'var(--accent)' : 'var(--border-sub)', transition:'all 0.3s ease' }} />
+                  <p style={{ fontSize:'0.95rem',lineHeight:1.75,color:'var(--fg-60)',fontWeight:400 }}>{skill.description}</p>
                 </div>
 
-                {/* ── Tech Stack pills — hidden on inactive cards ───────────── */}
-                <div
-                  className={`transition-all duration-500 overflow-hidden ${isActive ? 'opacity-100 max-h-[400px]' : 'opacity-0 max-h-0 pointer-events-none'}`}
-                >
-                  {/* Divider */}
+                {/* Pills */}
+                <div className={`overflow-hidden ${isActive ? 'opacity-100 max-h-[400px]' : 'opacity-0 max-h-0 pointer-events-none'}`}
+                  style={{ transition:'all 0.3s ease' }}> {/* ← was 0.5s */}
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="h-px flex-1" style={{ backgroundColor: 'var(--border-sub)' }} />
-                    <span
-                      className="text-[0.55rem] font-bold uppercase tracking-[0.25em]"
-                      style={{ color: isActive ? 'var(--accent)' : 'var(--fg-40)' }}
-                    >
-                      Stack
-                    </span>
-                    <div className="h-px flex-1" style={{ backgroundColor: 'var(--border-sub)' }} />
+                    <div className="h-px flex-1" style={{ backgroundColor:'var(--border-sub)' }} />
+                    <span className="text-[0.55rem] font-bold uppercase tracking-[0.25em]" style={{ color: isActive ? 'var(--accent)' : 'var(--fg-40)' }}>Stack</span>
+                    <div className="h-px flex-1" style={{ backgroundColor:'var(--border-sub)' }} />
                   </div>
-
-                  {/* Icon-only pills with hover tooltip */}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                  <div style={{ display:'flex',flexWrap:'wrap',gap:10 }}>
                     {skill.services.map((s, idx) => (
-                      <div
-                        key={idx}
-                        className="skill-pill"
-                        style={{
-                          position: 'relative',
-                          width: 44,
-                          height: 44,
-                          borderRadius: 12,
-                          backgroundColor: 'rgba(0,0,0,0.4)',
-                          border: '1px solid rgba(255,255,255,0.1)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
-                          cursor: 'default',
-                          transition: 'all 0.2s ease',
-                          backdropFilter: 'blur(8px)',
-                        }}
+                      <div key={idx} className="skill-pill" style={{ position:'relative',width:44,height:44,borderRadius:12,backgroundColor:'rgba(0,0,0,0.4)',border:'1px solid rgba(255,255,255,0.1)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,cursor:'default',transition:'all 0.15s ease',backdropFilter:'blur(8px)' }} // ← transition 0.15s was 0.2s
                         onMouseEnter={e => {
                           e.currentTarget.style.borderColor = 'var(--accent)';
                           e.currentTarget.style.backgroundColor = 'rgba(201,112,74,0.15)';
@@ -305,42 +215,14 @@ const Skills = () => {
                           e.currentTarget.querySelector('.pill-tooltip').style.transform = 'translateX(-50%) translateY(0px)';
                         }}
                       >
-                        {DEVICON_MAP[s] && (
-                          <i
-                            className={DEVICON_MAP[s]}
-                            style={{ fontSize: 22, lineHeight: 1 }}
-                          />
-                        )}
-                        {/* Hover tooltip */}
-                        <div
-                          className="pill-tooltip"
-                          style={{
-                            position: 'absolute',
-                            bottom: '110%',
-                            left: '50%',
-                            transform: 'translateX(-50%) translateY(0px)',
-                            backgroundColor: '#1a0d17',
-                            color: 'var(--fg)',
-                            fontSize: '0.65rem',
-                            fontWeight: 600,
-                            letterSpacing: '0.05em',
-                            whiteSpace: 'nowrap',
-                            padding: '4px 8px',
-                            borderRadius: 6,
-                            border: '1px solid var(--border)',
-                            opacity: 0,
-                            transition: 'opacity 0.2s ease, transform 0.2s ease',
-                            pointerEvents: 'none',
-                            zIndex: 10,
-                          }}
-                        >
+                        {DEVICON_MAP[s] && <i className={DEVICON_MAP[s]} style={{ fontSize:22,lineHeight:1 }} />}
+                        <div className="pill-tooltip" style={{ position:'absolute',bottom:'110%',left:'50%',transform:'translateX(-50%) translateY(0px)',backgroundColor:'#1a0d17',color:'var(--fg)',fontSize:'0.65rem',fontWeight:600,letterSpacing:'0.05em',whiteSpace:'nowrap',padding:'4px 8px',borderRadius:6,border:'1px solid var(--border)',opacity:0,transition:'opacity 0.15s ease, transform 0.15s ease',pointerEvents:'none',zIndex:10 }}>
                           {s}
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
-
               </div>
             </div>
           );
