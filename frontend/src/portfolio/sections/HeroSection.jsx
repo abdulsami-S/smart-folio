@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useContext } from 'react';
+import React, { useEffect, useRef, useContext, useState } from 'react';
 import { gsap } from 'gsap';
 import { Download, ChevronRight, MapPin, Sparkles, ArrowDown } from 'lucide-react';
 import { ThemeContext } from '../../context/ThemeContext';
@@ -39,7 +39,7 @@ const AntigravityText = ({ text, className, style, as: Tag = 'span', delay = 0 }
 /* ─── FLOATING HEADING ── */
 const FloatingHeading = ({ words, className, style, delay = 0, isDark = true }) => {
   const ref = useRef(null);
-  const textColor = isDark ? '#eedfc8d9' : 'rgba(56, 25, 50, 0.30)';
+  const textColor = isDark ? '#f5d78e' : 'rgba(56, 25, 50, 0.30)';
   
   useEffect(() => {
     const spans = ref.current?.querySelectorAll('.fg-word');
@@ -65,164 +65,79 @@ const FloatingHeading = ({ words, className, style, delay = 0, isDark = true }) 
   );
 };
 
-/* ─── GOOEY BLOB BUTTON ──────────────────────────────────────────────────────
- * Liquid blobs rise on hover via GSAP staggered animation.
- * SVG feGaussianBlur + feColorMatrix = gooey merge effect.
- * Accessible: keyboard focus ring, reduced-motion fallback.
+/* ─── SWIPE BUTTON ───────────────────────────────────────────────────────────
+ * Premium swipe-fill interaction on hover.
+ * Maintains idle float and asymmetric border-radius styling.
  * ──────────────────────────────────────────────────────────────────────────── */
-
-/* Inject goo filter + button CSS once into <head> */
-const GOO_STYLE = `
-  .blob-btn {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.55rem;
-    padding: 13px 34px;
-    border-radius: 50px;
-    font-weight: 700;
-    font-size: 0.75rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    text-decoration: none;
-    cursor: none;
-    overflow: hidden;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    transition: color 0.4s ease;
-    outline: none;
-  }
-  .blob-btn:focus-visible {
-    outline: 2px solid rgba(201,112,74,0.8);
-    outline-offset: 3px;
-  }
-  .blob-btn__inner {
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    overflow: hidden;
-    filter: url('#goo-filter');
-  }
-  .blob-btn__blobs {
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-  }
-  .blob-btn__blob {
-    position: absolute;
-    bottom: -20%;
-    width: 34%;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    transform: translate3d(0, 100%, 0) scale(1.4);
-    transition: none;
-  }
-  .blob-btn__blob:nth-child(1) { left: -5%; }
-  .blob-btn__blob:nth-child(2) { left: 28%; }
-  .blob-btn__blob:nth-child(3) { left: 55%; }
-  .blob-btn__blob:nth-child(4) { left: 78%; }
-  .blob-btn__label {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    gap: 0.55rem;
-    transition: color 0.35s ease;
-    pointer-events: none;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .blob-btn__blob { transition: opacity 0.2s ease !important; }
-  }
-`;
-
-let GOO_INJECTED = false;
-const injectGooStyles = () => {
-  if (GOO_INJECTED || typeof document === 'undefined') return;
-  const s = document.createElement('style');
-  s.textContent = GOO_STYLE;
-  document.head.appendChild(s);
-  GOO_INJECTED = true;
-};
-
-const BlobBtn = ({ children, href, target, rel, blobColor = '#c9704a', textColor = 'var(--fg)', hoverTextColor = '#fff3e6', borderColor = 'rgba(201,112,74,0.55)', style }) => {
-  const btnRef   = useRef(null);
-  const blobsRef = useRef([]);
-  const prefersReduced = useRef(typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-
-  useEffect(() => { injectGooStyles(); }, []);
+const SwipeBtn = ({ children, className, style, href, target, rel, variant = 'primary' }) => {
+  const wrapRef  = useRef(null);
+  const contentRef = useRef(null);
+  
+  const isPrimary = variant === 'primary';
+  const baseBg = isPrimary ? 'linear-gradient(135deg, #c9704a, #9b3d1e)' : 'transparent';
+  const borderColor = isPrimary ? 'rgba(232,168,124,0.3)' : 'rgba(201,112,74,0.5)';
+  
+  // For primary, swipe in a reversed gradient for a vibrant shift. For outline, fill with standard gradient.
+  const swipeBg = isPrimary ? 'linear-gradient(135deg, #9b3d1e, #c9704a)' : 'linear-gradient(135deg, #c9704a, #9b3d1e)';
+  
+  const defaultTextColor = isPrimary ? '#fff3e6' : 'var(--fg)';
+  const hoverTextColor = '#fff3e6'; // Both variants go/stay light on hover due to backgrounds
+  
+  const boxShadow = isPrimary ? '0 8px 24px rgba(201,112,74,0.3)' : 'none';
+  const hoverBoxShadow = isPrimary ? '0 12px 32px rgba(201,112,74,0.5)' : '0 8px 24px rgba(201,112,74,0.3)';
+  
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    
+    // Idle float
+    gsap.to(wrap, {
+      y: isPrimary ? -6 : -4,
+      duration: 1.8 + Math.random() * 0.8,
+      repeat: -1, yoyo: true, ease: 'sine.inOut',
+      delay: isPrimary ? 0 : 0.6,
+    });
+    
+    return () => gsap.killTweensOf(wrap);
+  }, [isPrimary]);
 
   const handleEnter = () => {
-    const blobs = blobsRef.current;
-    if (!blobs.length) return;
-    if (prefersReduced.current) {
-      blobs.forEach(b => { if (b) b.style.opacity = '1'; });
-      return;
-    }
-    gsap.killTweensOf(blobs);
-    gsap.to(blobs, {
-      y: '-185%',
-      scale: 1.4,
-      stagger: 0.07,
-      duration: 0.72,
-      ease: 'power2.inOut',
-    });
-    if (btnRef.current) gsap.to(btnRef.current.querySelector('.blob-btn__label'), { color: hoverTextColor, duration: 0.35 });
+    if (wrapRef.current) gsap.to(wrapRef.current, { boxShadow: hoverBoxShadow, borderColor: 'rgba(232,168,124,0.5)', duration: 0.3 });
+    if (!isPrimary && contentRef.current) gsap.to(contentRef.current, { color: hoverTextColor, duration: 0.3 });
   };
-
   const handleLeave = () => {
-    const blobs = blobsRef.current;
-    if (!blobs.length) return;
-    if (prefersReduced.current) {
-      blobs.forEach(b => { if (b) b.style.opacity = '0'; });
-      return;
-    }
-    gsap.killTweensOf(blobs);
-    gsap.to(blobs, {
-      y: '100%',
-      scale: 1.4,
-      stagger: { each: 0.06, from: 'end' },
-      duration: 0.55,
-      ease: 'power3.in',
-    });
-    if (btnRef.current) gsap.to(btnRef.current.querySelector('.blob-btn__label'), { color: textColor, duration: 0.3 });
+    if (wrapRef.current) gsap.to(wrapRef.current, { boxShadow: boxShadow, borderColor: borderColor, duration: 0.3 });
+    if (!isPrimary && contentRef.current) gsap.to(contentRef.current, { color: defaultTextColor, duration: 0.3 });
   };
 
   return (
-    <a ref={btnRef} href={href} target={target} rel={rel}
-      className="blob-btn"
-      style={{ border: `1.5px solid ${borderColor}`, color: textColor, ...style }}
+    <a ref={wrapRef} href={href} target={target} rel={rel}
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
+      className={`group relative inline-flex items-center gap-[0.6rem] overflow-hidden cursor-none transition-colors duration-300 ${className}`}
+      style={{
+        padding: '14px 32px',
+        background: baseBg,
+        border: `1px solid ${borderColor}`,
+        fontWeight: 700,
+        fontSize: '0.75rem',
+        letterSpacing: '0.18em',
+        textTransform: 'uppercase',
+        textDecoration: 'none',
+        boxShadow: boxShadow,
+        ...style
+      }}
     >
-      {/* SVG goo filter — renders once, hidden */}
-      <svg style={{ position:'absolute', width:0, height:0 }} aria-hidden="true">
-        <defs>
-          <filter id="goo-filter">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
-            <feColorMatrix in="blur" mode="matrix"
-              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9"
-              result="goo" />
-            <feBlend in="SourceGraphic" in2="goo" />
-          </filter>
-        </defs>
-      </svg>
-
-      {/* Gooey inner layer */}
-      <span className="blob-btn__inner">
-        <span className="blob-btn__blobs">
-          {[0,1,2,3].map(i => (
-            <span key={i}
-              ref={el => blobsRef.current[i] = el}
-              className="blob-btn__blob"
-              style={{ backgroundColor: blobColor }}
-            />
-          ))}
-        </span>
+      {/* Swipe background layer */}
+      <span 
+        className="absolute inset-0 w-full h-full -translate-x-full group-hover:translate-x-0 transition-transform duration-[400ms] ease-[cubic-bezier(0.19,1,0.22,1)]"
+        style={{ background: swipeBg }} 
+      />
+      
+      {/* Content wrapper */}
+      <span ref={contentRef} className="relative z-10 flex items-center gap-inherit transition-transform duration-300 group-hover:scale-[1.02]" style={{ color: defaultTextColor }}>
+        {children}
       </span>
-
-      {/* Visible label */}
-      <span className="blob-btn__label">{children}</span>
     </a>
   );
 };
@@ -386,32 +301,30 @@ const Hero = ({ portfolio }) => {
               </p>
             </div>
 
-            {/* ── GOOEY BLOB BUTTONS ── */}
+            {/* ── CTA BUTTONS ── */}
             <div ref={buttonsRef} className="flex flex-wrap gap-5" style={{ opacity:0 }}>
 
               {/* Primary — View Projects */}
-              <BlobBtn
+              <SwipeBtn
                 href="#projects"
-                blobColor="#c9704a"
-                textColor="rgba(201,112,74,0.95)"
-                hoverTextColor="#fff3e6"
-                borderColor="rgba(201,112,74,0.6)"
+                variant="primary"
+                style={{ borderRadius: '4px 16px 4px 16px' }}
               >
                 View Projects
-                <ChevronRight size={14} />
-              </BlobBtn>
+                <ChevronRight size={14} className="transition-transform group-hover:translate-x-1" />
+              </SwipeBtn>
 
               {/* Outline — Resume */}
-              <BlobBtn
-                href="/resume.pdf" target="_blank" rel="noopener noreferrer"
-                blobColor="#9b3d1e"
-                textColor="rgba(201,112,74,0.85)"
-                hoverTextColor="#fff3e6"
-                borderColor="rgba(201,112,74,0.45)"
+              <SwipeBtn
+                href="/resume.pdf"
+                target="_blank" 
+                rel="noopener noreferrer"
+                variant="outline"
+                style={{ borderRadius: '16px 4px 16px 4px' }}
               >
-                <Download size={14} />
+                <Download size={14} className="transition-transform group-hover:-translate-y-1" />
                 Resume
-              </BlobBtn>
+              </SwipeBtn>
             </div>
           </div>
         </div>
