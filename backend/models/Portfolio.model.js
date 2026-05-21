@@ -8,6 +8,7 @@ const portfolioSchema = new mongoose.Schema({
   phone: String,
   github: String,
   linkedin: String,
+  aboutImage: String,
   heroTitles: [String],
   resumeUrl: String,
   socials: {

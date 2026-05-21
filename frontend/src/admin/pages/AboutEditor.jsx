@@ -7,7 +7,7 @@ import { Save, Loader2 } from 'lucide-react';
 const AboutEditor = () => {
   const { portfolio, refetch } = useContext(PortfolioContext);
   const [formData, setFormData] = useState({
-    name: '', tagline: '', bio: '', email: '', phone: ''
+    name: '', tagline: '', bio: '', email: '', phone: '', aboutImage: ''
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -18,7 +18,8 @@ const AboutEditor = () => {
         tagline: portfolio.tagline || '',
         bio: portfolio.bio || '',
         email: portfolio.email || '',
-        phone: portfolio.phone || ''
+        phone: portfolio.phone || '',
+        aboutImage: portfolio.aboutImage || ''
       });
     }
   }, [portfolio]);
@@ -51,9 +52,14 @@ const AboutEditor = () => {
             <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-4 py-3 rounded-lg bg-black/10 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-accent outline-none transition-colors" />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2 opacity-80">Tagline</label>
+            <label className="block text-sm font-medium mb-2 opacity-80">Tagline / Title</label>
             <input required type="text" value={formData.tagline} onChange={e => setFormData({...formData, tagline: e.target.value})} className="w-full px-4 py-3 rounded-lg bg-black/10 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-accent outline-none transition-colors" />
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-2 opacity-80">Profile Image URL</label>
+          <input type="text" placeholder="e.g. https://imgur.com/your-image.png" value={formData.aboutImage} onChange={e => setFormData({...formData, aboutImage: e.target.value})} className="w-full px-4 py-3 rounded-lg bg-black/10 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-accent outline-none transition-colors" />
         </div>
 
         <div>

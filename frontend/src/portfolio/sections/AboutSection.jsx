@@ -175,7 +175,11 @@ const About = ({ portfolio }) => {
                       boxShadow: '0 8px 32px rgba(201,112,74,0.2)',
                     }}
                   >
-                    <AvatarIllustration />
+                    {portfolio?.aboutImage ? (
+                      <img src={portfolio.aboutImage} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <AvatarIllustration />
+                    )}
                   </div>
 
                   {/* Name */}
