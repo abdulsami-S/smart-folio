@@ -40,12 +40,17 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(morgan('dev'));
 
+// Static serving for uploads
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Routes
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/projects', require('./routes/projects.routes'));
 app.use('/api/skills', require('./routes/skills.routes'));
 app.use('/api/timeline', require('./routes/timeline.routes'));
 app.use('/api/portfolio', require('./routes/portfolio.routes'));
+app.use('/api/upload', require('./routes/upload.routes'));
 
 // Error Handler Middleware
 app.use(errorHandler);

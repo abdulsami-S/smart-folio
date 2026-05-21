@@ -38,8 +38,7 @@ router.post('/', upload.single('image'), (req, res) => {
       return res.status(400).json({ message: 'No file uploaded' });
     }
     // Return the URL that can be used to access this image
-    // For local development, this will be /uploads/filename.jpg
-    const imageUrl = `/uploads/${req.file.filename}`;
+    const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
     res.status(200).json({ url: imageUrl });
   } catch (error) {
     res.status(500).json({ message: 'Error uploading file', error: error.message });

@@ -1,8 +1,8 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { PortfolioContext } from '../../context/PortfolioContext';
-import { updatePortfolio } from '../../api/portfolio.api';
+import { updatePortfolio, uploadImage } from '../../api/portfolio.api';
 import toast from 'react-hot-toast';
-import { Save, Loader2 } from 'lucide-react';
+import { Save, Loader2, Upload } from 'lucide-react';
 
 const AboutEditor = () => {
   const { portfolio, refetch } = useContext(PortfolioContext);
@@ -10,6 +10,26 @@ const AboutEditor = () => {
     name: '', tagline: '', bio: '', email: '', phone: '', aboutImage: ''
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const data = new FormData();
+    data.append('image', file);
+    setIsUploading(true);
+
+    try {
+      const result = await uploadImage(data);
+      setFormData(prev => ({ ...prev, aboutImage: result.url }));
+      toast.success('Image uploaded! Don\\'t forget to save.');
+    } catch (error) {
+      toast.error('Failed to upload image');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   useEffect(() => {
     if (portfolio) {
@@ -58,8 +78,17 @@ const AboutEditor = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2 opacity-80">Profile Image URL</label>
-          <input type="text" placeholder="e.g. https://imgur.com/your-image.png" value={formData.aboutImage} onChange={e => setFormData({...formData, aboutImage: e.target.value})} className="w-full px-4 py-3 rounded-lg bg-black/10 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-accent outline-none transition-colors" />
+          <label className="block text-sm font-medium mb-2 opacity-80">Profile Image</label>
+          <div className="flex gap-4 items-center">
+            <input type="text" placeholder="e.g. https://imgur.com/your-image.png" value={formData.aboutImage} onChange={e => setFormData({...formData, aboutImage: e.target.value})} className="flex-1 px-4 py-3 rounded-lg bg-black/10 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:border-accent outline-none transition-colors" />
+            <div className="relative">
+              <input type="file" accept="image/*" onChange={handleImageUpload} disabled={isUploading} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-default" />
+              <button type="button" disabled={isUploading} className="px-6 py-3 rounded-lg bg-black/10 dark:bg-white/5 border border-black/10 dark:border-white/10 hover:border-accent transition-colors flex items-center gap-2 font-medium">
+                {isUploading ? <Loader2 className="animate-spin" size={20} /> : <Upload size={20} />}
+                Upload
+              </button>
+            </div>
+          </div>
         </div>
 
         <div>
