@@ -37,8 +37,10 @@ const Footer = () => {
         </div>
 
         {/* Footer Text */}
-        <div className="text-[var(--fg-40)] text-xs uppercase tracking-widest font-semibold border-t pt-8 w-full" style={{ borderColor: 'var(--border-sub)' }}>
-          BUILT BY SAMI.
+        <div className="text-[var(--fg-40)] text-xs uppercase tracking-widest font-semibold border-t pt-8 w-full flex justify-center gap-4" style={{ borderColor: 'var(--border-sub)' }}>
+          <span>BUILT BY SAMI.</span>
+          <span>&middot;</span>
+          <a href="/admin/login" className="hover:text-[var(--accent)] transition-colors duration-300" style={{ pointerEvents: 'auto' }}>ADMIN</a>
         </div>
       </div>
     </footer>
