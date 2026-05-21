@@ -172,7 +172,7 @@ flowchart TD
 ## 📂 Project Structure
 
 ```
-AI_PORTFOLIO/
+MY_PORTFOLIO/
 │
 ├── 📁 backend/
 │   ├── 📁 config/

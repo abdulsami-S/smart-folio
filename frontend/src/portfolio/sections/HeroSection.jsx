@@ -39,7 +39,7 @@ const AntigravityText = ({ text, className, style, as: Tag = 'span', delay = 0 }
 /* ─── FLOATING HEADING ── */
 const FloatingHeading = ({ words, className, style, delay = 0, isDark = true }) => {
   const ref = useRef(null);
-  const textColor = isDark ? '#f5d78e' : 'rgba(56, 25, 50, 0.30)';
+  const textColor = isDark ? '#f5d78ed9' : 'rgba(56, 25, 50, 0.30)';
   
   useEffect(() => {
     const spans = ref.current?.querySelectorAll('.fg-word');
