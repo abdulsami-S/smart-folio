@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
-import { Outlet, NavLink } from 'react-router-dom';
+import { Outlet, NavLink, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { LayoutDashboard, FolderKanban, Wrench, FileText, Clock, Home as HomeIcon, Share2, LogOut } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Wrench, FileText, Clock, Home as HomeIcon, Share2, LogOut, Globe } from 'lucide-react';
 import ThemeToggle from '../portfolio/components/ThemeToggle';
 
 const AdminLayout = () => {
@@ -44,6 +44,13 @@ const AdminLayout = () => {
         </nav>
 
         <div className="mt-auto pt-6 border-t border-black/10 dark:border-white/10 flex flex-col gap-4">
+          <Link
+            to="/"
+            className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 opacity-80 hover:opacity-100 transition-all text-primary font-medium"
+          >
+            <Globe size={20} />
+            View Site
+          </Link>
           <ThemeToggle />
           <button 
             onClick={logout}
@@ -60,8 +67,12 @@ const AdminLayout = () => {
         <header className="md:hidden flex items-center justify-between p-4 glass sticky top-0 z-20 border-b border-black/10 dark:border-white/10">
           <h1 className="font-bold text-lg text-gradient">Sami's Admin</h1>
           <div className="flex items-center gap-4">
+            <Link to="/" className="flex items-center gap-1.5 text-sm font-medium opacity-80 hover:opacity-100 transition-opacity">
+              <Globe size={18} />
+              <span>View Site</span>
+            </Link>
             <ThemeToggle />
-            <button onClick={logout} className="text-red-500 cursor-pointer"><LogOut size={20} /></button>
+            <button onClick={logout} className="text-red-500 cursor-pointer flex items-center"><LogOut size={20} /></button>
           </div>
         </header>
 
