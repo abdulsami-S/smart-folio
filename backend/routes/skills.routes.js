@@ -7,11 +7,11 @@ const {
   deleteSkill, 
   toggleVisibility 
 } = require('../controllers/skills.controller');
-const { protect } = require('../middleware/auth');
+const { protect, optionalProtect } = require('../middleware/auth');
 const { createSkillRules, updateSkillRules, idParamRules } = require('../middleware/validate');
 
 // Public route
-router.get('/', getSkills);
+router.get('/', optionalProtect, getSkills);
 
 // Protected routes
 router.post('/', protect, createSkillRules, createSkill);

@@ -43,13 +43,56 @@ const skillData = [
   { category: "Tools",     description: "Professional development workflow, version control and deployment.",                                 services: ["Git","GitHub","VS Code","Postman","Linux"] },
 ];
 
-const Skills = () => {
+const Skills = ({ skills }) => {
   const sectionRef   = useRef(null);
   const trackRef     = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isMobile, setIsMobile]       = useState(false);
   const { theme } = useContext(ThemeContext);
   const isDark = theme === 'dark';
+
+  const displaySkills = React.useMemo(() => {
+    if (!skills || skills.length === 0) {
+      return skillData;
+    }
+
+    // Group the visible skills by category
+    const grouped = skills.reduce((acc, s) => {
+      if (s.visible !== false) {
+        if (!acc[s.category]) acc[s.category] = [];
+        acc[s.category].push(s.name);
+      }
+      return acc;
+    }, {});
+
+    // For categories that we have descriptions for, map them
+    const categoryDescriptions = {
+      "Backend": "Robust server-side systems and REST APIs built for scale and performance.",
+      "Data & ML": "Machine learning pipelines and geospatial analysis for real-world AI applications.",
+      "Databases": "Data storage and management across relational and real-time systems.",
+      "Frontend": "Modern responsive interfaces built with React and vanilla JavaScript.",
+      "Languages": "Core programming languages for web apps, ML models and systems.",
+      "Tools": "Professional development workflow, version control and deployment."
+    };
+
+    // Return the mapped list
+    return Object.entries(grouped)
+      .map(([category, services]) => ({
+        category,
+        description: categoryDescriptions[category] || `Technical skills and tools specialized in ${category}.`,
+        services
+      }))
+      .sort((a, b) => {
+        // Keep the original order of default categories
+        const order = ["Backend", "Data & ML", "Databases", "Frontend", "Languages", "Tools"];
+        const idxA = order.indexOf(a.category);
+        const idxB = order.indexOf(b.category);
+        if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+        if (idxA !== -1) return -1;
+        if (idxB !== -1) return 1;
+        return a.category.localeCompare(b.category);
+      });
+  }, [skills]);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -82,7 +125,8 @@ const Skills = () => {
           pin: true,
           anticipatePin: 1,
           onUpdate: (self) => {
-            const idx = Math.min(Math.round(self.progress * 5), 5);
+            const maxIdx = Math.max(0, displaySkills.length - 1);
+            const idx = Math.min(Math.round(self.progress * maxIdx), maxIdx);
             setActiveIndex(idx);
           },
         },
@@ -107,7 +151,7 @@ const Skills = () => {
     }, sectionRef);
 
     return () => ctx.revert();
-  }, [isMobile]);
+  }, [isMobile, displaySkills]);
 
   // ── Pill entrance — duration 0.25 (was 0.4), stagger 0.04 (was 0.06) ──
   useEffect(() => {
@@ -147,7 +191,7 @@ const Skills = () => {
         className={`${isMobile ? 'flex flex-col gap-6 w-full' : 'flex flex-row items-center gap-[24px] h-full will-change-transform'}`}
         style={{ padding: isMobile ? '0' : '0 calc(50vw - 210px)' }}
       >
-        {skillData.map((skill, i) => {
+        {displaySkills.map((skill, i) => {
           const isActive = isMobile ? true : activeIndex === i;
           return (
             <div

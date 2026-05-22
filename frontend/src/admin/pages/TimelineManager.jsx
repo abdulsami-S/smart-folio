@@ -37,11 +37,23 @@ const SortableTimelineItem = ({ id, entry, onEdit, onDelete }) => {
         <p className="text-sm opacity-80 truncate">{entry.institution}</p>
       </div>
       <div className="flex items-center gap-2">
-        <button onClick={() => onEdit(entry)} className="p-2 rounded-lg text-primary hover:bg-primary/10 transition-colors">
+        <button 
+          onClick={() => onEdit(entry)} 
+          className="relative group p-2 rounded-lg text-primary hover:bg-primary/10 transition-colors"
+        >
           <Edit size={18} />
+          <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 bg-black/90 dark:bg-white/95 text-white dark:text-black text-[10px] font-semibold rounded-md opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 transform translate-y-1 group-hover:translate-y-0 whitespace-nowrap z-50 shadow-lg border border-white/10 dark:border-black/10">
+            Edit Entry
+          </span>
         </button>
-        <button onClick={() => onDelete(entry._id)} className="p-2 rounded-lg text-red-500 hover:bg-red-500/10 transition-colors">
+        <button 
+          onClick={() => onDelete(entry._id)} 
+          className="relative group p-2 rounded-lg text-red-500 hover:bg-red-500/10 transition-colors"
+        >
           <Trash2 size={18} />
+          <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 bg-black/90 dark:bg-white/95 text-white dark:text-black text-[10px] font-semibold rounded-md opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 transform translate-y-1 group-hover:translate-y-0 whitespace-nowrap z-50 shadow-lg border border-white/10 dark:border-black/10">
+            Delete Entry
+          </span>
         </button>
       </div>
     </div>

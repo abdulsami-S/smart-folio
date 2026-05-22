@@ -101,24 +101,49 @@ const SkillsManager = () => {
             <h3 className="text-lg font-bold mb-4 text-gradient">{category}</h3>
             <div className="space-y-2">
               {catSkills.map(skill => (
-                <div key={skill._id} className="flex items-center justify-between p-3 rounded-lg bg-black/10 dark:bg-white/5 border border-white/5">
+                <div 
+                  key={skill._id} 
+                  className={`flex items-center justify-between p-3 rounded-lg bg-black/10 dark:bg-white/5 border transition-all duration-300 ${
+                    skill.visible 
+                      ? 'border-white/5' 
+                      : 'border-dashed border-white/10 opacity-50 bg-black/2 dark:bg-white/2'
+                  }`}
+                >
                   <div className="flex items-center gap-3">
-                    <span className="font-medium w-32 truncate">{skill.name}</span>
+                    <span className={`font-medium w-32 truncate ${!skill.visible ? 'line-through opacity-60' : ''}`}>{skill.name}</span>
                     <div className="flex gap-1">
                       {[1, 2, 3, 4, 5].map(i => (
-                        <div key={i} className={`w-2 h-2 rounded-full ${i <= skill.proficiency ? 'bg-secondary' : 'bg-white/20'}`} />
+                        <div key={i} className={`w-2 h-2 rounded-full ${i <= skill.proficiency ? 'bg-secondary' : 'bg-white/20'} ${!skill.visible ? 'opacity-40' : ''}`} />
                       ))}
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    <button onClick={() => handleToggle(skill._id)} className={`p-1.5 rounded-md ${skill.visible ? 'text-primary' : 'text-gray-500'} hover:bg-white/10 cursor-pointer`}>
+                    <button 
+                      onClick={() => handleToggle(skill._id)} 
+                      className={`relative group p-1.5 rounded-md ${skill.visible ? 'text-primary' : 'text-gray-500'} hover:bg-white/10 cursor-pointer`}
+                    >
                       {skill.visible ? <Eye size={16} /> : <EyeOff size={16} />}
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 bg-black/90 dark:bg-white/95 text-white dark:text-black text-[10px] font-semibold rounded-md opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 transform translate-y-1 group-hover:translate-y-0 whitespace-nowrap z-50 shadow-lg border border-white/10 dark:border-black/10">
+                        {skill.visible ? 'Hide from Portfolio' : 'Show on Portfolio'}
+                      </span>
                     </button>
-                    <button onClick={() => openModal(skill)} className="p-1.5 rounded-md text-accent hover:bg-white/10 cursor-pointer">
+                    <button 
+                      onClick={() => openModal(skill)} 
+                      className="relative group p-1.5 rounded-md text-accent hover:bg-white/10 cursor-pointer"
+                    >
                       <Edit size={16} />
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 bg-black/90 dark:bg-white/95 text-white dark:text-black text-[10px] font-semibold rounded-md opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 transform translate-y-1 group-hover:translate-y-0 whitespace-nowrap z-50 shadow-lg border border-white/10 dark:border-black/10">
+                        Edit Skill
+                      </span>
                     </button>
-                    <button onClick={() => handleDelete(skill._id)} className="p-1.5 rounded-md text-red-500 hover:bg-white/10 cursor-pointer">
+                    <button 
+                      onClick={() => handleDelete(skill._id)} 
+                      className="relative group p-1.5 rounded-md text-red-500 hover:bg-white/10 cursor-pointer"
+                    >
                       <Trash2 size={16} />
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 bg-black/90 dark:bg-white/95 text-white dark:text-black text-[10px] font-semibold rounded-md opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 transform translate-y-1 group-hover:translate-y-0 whitespace-nowrap z-50 shadow-lg border border-white/10 dark:border-black/10">
+                        Delete Skill
+                      </span>
                     </button>
                   </div>
                 </div>

@@ -17,7 +17,15 @@ const SortableProjectItem = ({ id, project, onEdit, onDelete, onToggleVisibility
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="glass p-4 rounded-xl flex items-center gap-4 border border-black/10 dark:border-white/5 mb-3">
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      className={`glass p-4 rounded-xl flex items-center gap-4 border mb-3 transition-all duration-300 ${
+        project.visible 
+          ? 'border-black/10 dark:border-white/5' 
+          : 'border-dashed border-black/20 dark:border-white/10 opacity-60 bg-black/5 dark:bg-white/2'
+      }`}
+    >
       <button {...attributes} {...listeners} className="cursor-grab hover:text-primary transition-colors">
         <GripVertical size={20} />
       </button>
@@ -32,14 +40,34 @@ const SortableProjectItem = ({ id, project, onEdit, onDelete, onToggleVisibility
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <button onClick={() => onToggleVisibility(project._id)} className={`p-2 rounded-lg transition-colors ${project.visible ? 'text-secondary hover:bg-secondary/10' : 'text-gray-500 hover:bg-gray-500/10'}`}>
+        <button 
+          onClick={() => onToggleVisibility(project._id)} 
+          className={`relative group p-2 rounded-lg transition-colors ${
+            project.visible ? 'text-secondary hover:bg-secondary/10' : 'text-gray-500 hover:bg-gray-500/10'
+          }`}
+        >
           {project.visible ? <Eye size={18} /> : <EyeOff size={18} />}
+          <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 bg-black/90 dark:bg-white/95 text-white dark:text-black text-[10px] font-semibold rounded-md opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 transform translate-y-1 group-hover:translate-y-0 whitespace-nowrap z-50 shadow-lg border border-white/10 dark:border-black/10">
+            {project.visible ? 'Hide from Portfolio' : 'Show on Portfolio'}
+          </span>
         </button>
-        <button onClick={() => onEdit(project)} className="p-2 rounded-lg text-primary hover:bg-primary/10 transition-colors">
+        <button 
+          onClick={() => onEdit(project)} 
+          className="relative group p-2 rounded-lg text-primary hover:bg-primary/10 transition-colors"
+        >
           <Edit size={18} />
+          <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 bg-black/90 dark:bg-white/95 text-white dark:text-black text-[10px] font-semibold rounded-md opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 transform translate-y-1 group-hover:translate-y-0 whitespace-nowrap z-50 shadow-lg border border-white/10 dark:border-black/10">
+            Edit Project
+          </span>
         </button>
-        <button onClick={() => onDelete(project._id)} className="p-2 rounded-lg text-red-500 hover:bg-red-500/10 transition-colors">
+        <button 
+          onClick={() => onDelete(project._id)} 
+          className="relative group p-2 rounded-lg text-red-500 hover:bg-red-500/10 transition-colors"
+        >
           <Trash2 size={18} />
+          <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 bg-black/90 dark:bg-white/95 text-white dark:text-black text-[10px] font-semibold rounded-md opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 transform translate-y-1 group-hover:translate-y-0 whitespace-nowrap z-50 shadow-lg border border-white/10 dark:border-black/10">
+            Delete Project
+          </span>
         </button>
       </div>
     </div>

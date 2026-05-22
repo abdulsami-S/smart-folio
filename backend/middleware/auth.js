@@ -21,4 +21,17 @@ const protect = (req, res, next) => {
   }
 };
 
-module.exports = { protect };
+const optionalProtect = (req, res, next) => {
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    try {
+      const token = req.headers.authorization.split(' ')[1];
+      const decoded = verifyAccessToken(token);
+      req.admin = decoded;
+    } catch (error) {
+      // Ignore token failure for public endpoints, just don't set req.admin
+    }
+  }
+  next();
+};
+
+module.exports = { protect, optionalProtect };

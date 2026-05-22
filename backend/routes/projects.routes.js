@@ -8,11 +8,11 @@ const {
   reorderProjects, 
   toggleVisibility 
 } = require('../controllers/projects.controller');
-const { protect } = require('../middleware/auth');
+const { protect, optionalProtect } = require('../middleware/auth');
 const { createProjectRules, updateProjectRules, reorderRules, idParamRules } = require('../middleware/validate');
 
 // Public route (with different behavior based on auth status handled in controller)
-router.get('/', getProjects);
+router.get('/', optionalProtect, getProjects);
 
 // Protected routes
 router.post('/', protect, createProjectRules, createProject);
