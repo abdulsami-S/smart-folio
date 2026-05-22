@@ -77,7 +77,9 @@ const Projects = ({ projects }) => {
   const sectionRef = useRef(null);
   const { theme } = useContext(ThemeContext);
   const isDark = theme === 'dark';
-  const displayProjects = (projects && projects.length > 0) ? projects.map((p, i) => ({ ...FALLBACK_PROJECTS[i], ...p })) : FALLBACK_PROJECTS;
+  const displayProjects = (projects && projects.length > 0)
+    ? projects.filter(p => p.visible !== false).map((p, i) => ({ ...FALLBACK_PROJECTS[i], ...p }))
+    : FALLBACK_PROJECTS;
 
   useEffect(() => {
     if (!sectionRef.current) return;

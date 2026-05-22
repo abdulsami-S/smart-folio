@@ -1,7 +1,7 @@
 import api from './axiosInstance';
 
-export const getSkills = async () => {
-  const response = await api.get('/skills');
+export const getSkills = async (isAdmin) => {
+  const response = await api.get(`/skills${isAdmin ? '?admin=true' : ''}`);
   return response.data;
 };
 

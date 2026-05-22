@@ -7,8 +7,8 @@ const Overview = () => {
   const { projects, skills, timeline, portfolio } = useContext(PortfolioContext);
 
   const stats = [
-    { label: 'Total Projects', value: projects?.length || 0, icon: FolderKanban, color: 'text-primary' },
-    { label: 'Total Skills', value: skills?.length || 0, icon: Wrench, color: 'text-secondary' },
+    { label: 'Active Projects', value: projects ? projects.filter(p => p.visible !== false).length : 0, icon: FolderKanban, color: 'text-primary' },
+    { label: 'Active Skills', value: skills ? skills.filter(s => s.visible !== false).length : 0, icon: Wrench, color: 'text-secondary' },
     { label: 'Timeline Entries', value: timeline?.length || 0, icon: Clock, color: 'text-accent' },
   ];
 

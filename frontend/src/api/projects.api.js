@@ -1,7 +1,7 @@
 import api from './axiosInstance';
 
-export const getProjects = async () => {
-  const response = await api.get('/projects');
+export const getProjects = async (isAdmin) => {
+  const response = await api.get(`/projects${isAdmin ? '?admin=true' : ''}`);
   return response.data;
 };
 

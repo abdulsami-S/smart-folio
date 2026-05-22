@@ -23,8 +23,8 @@ export const PortfolioProvider = ({ children }) => {
       setPortfolioData(prev => ({ ...prev, loading: true, error: null }));
       const [portfolio, projects, skills, timeline] = await Promise.all([
         getPortfolio(),
-        getProjects(),
-        getSkills(),
+        getProjects(isAuthenticated),
+        getSkills(isAuthenticated),
         getTimeline()
       ]);
       setPortfolioData({ portfolio, projects, skills, timeline, loading: false, error: null });
@@ -32,7 +32,7 @@ export const PortfolioProvider = ({ children }) => {
       console.error('Failed to fetch portfolio data:', error);
       setPortfolioData(prev => ({ ...prev, loading: false, error: 'Failed to load data.' }));
     }
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (!isAuthLoading) {

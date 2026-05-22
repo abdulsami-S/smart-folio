@@ -22,14 +22,20 @@ const protect = (req, res, next) => {
 };
 
 const optionalProtect = (req, res, next) => {
+  const isAdminRequest = req.query.admin === 'true';
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
       const token = req.headers.authorization.split(' ')[1];
       const decoded = verifyAccessToken(token);
       req.admin = decoded;
+      return next();
     } catch (error) {
-      // Ignore token failure for public endpoints, just don't set req.admin
+      if (isAdminRequest) {
+        return res.status(401).json({ message: 'Session expired' });
+      }
     }
+  } else if (isAdminRequest) {
+    return res.status(401).json({ message: 'Not authorized' });
   }
   next();
 };
