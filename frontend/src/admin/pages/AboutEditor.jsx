@@ -23,7 +23,7 @@ const AboutEditor = () => {
     try {
       const result = await uploadImage(data);
       setFormData(prev => ({ ...prev, aboutImage: result.url }));
-      toast.success('Image uploaded! Don\\'t forget to save.');
+      toast.success("Image uploaded! Don't forget to save.");
     } catch (error) {
       toast.error('Failed to upload image');
     } finally {
@@ -52,7 +52,10 @@ const AboutEditor = () => {
       toast.success('Profile updated successfully');
       refetch();
     } catch (error) {
-      toast.error('Failed to update profile');
+      const errorMsg = error.response?.data?.errors 
+        ? error.response.data.errors.map(err => `${err.field}: ${err.message}`).join(', ') 
+        : (error.response?.data?.message || 'Failed to update profile');
+      toast.error(errorMsg);
     } finally {
       setIsSaving(false);
     }

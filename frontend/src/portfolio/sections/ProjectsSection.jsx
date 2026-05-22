@@ -29,8 +29,8 @@ const ProjectCard = ({ project, index, isDark }) => {
 
   const fallback = FALLBACK_PROJECTS[index] || FALLBACK_PROJECTS[0];
   const badge = project.badge || fallback.badge;
-  const image = project.image || fallback.image;
-  const githubLink = project.github || fallback.github;
+  const image = project.imageUrl || project.image || fallback.image;
+  const githubLink = project.githubUrl || project.github || fallback.github;
 
   return (
     <div

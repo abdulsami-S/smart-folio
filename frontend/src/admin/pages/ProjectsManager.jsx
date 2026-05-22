@@ -1,8 +1,9 @@
 import React, { useContext, useState } from 'react';
 import { PortfolioContext } from '../../context/PortfolioContext';
 import { createProject, updateProject, deleteProject, toggleProjectVisibility, reorderProjects } from '../../api/projects.api';
+import { uploadImage } from '../../api/portfolio.api';
 import toast from 'react-hot-toast';
-import { GripVertical, Eye, EyeOff, Edit, Trash2, Plus, X } from 'lucide-react';
+import { GripVertical, Eye, EyeOff, Edit, Trash2, Plus, X, Upload, Loader2 } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -55,9 +56,29 @@ const ProjectsManager = () => {
   React.useEffect(() => { setLocalProjects(projects || []); }, [projects]);
 
   const [formData, setFormData] = useState({
-    title: '', description: '', techStack: [], githubUrl: '', liveUrl: '', category: '', visible: true
+    title: '', description: '', techStack: [], githubUrl: '', liveUrl: '', category: '', visible: true, imageUrl: ''
   });
   const [techInput, setTechInput] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const data = new FormData();
+    data.append('image', file);
+    setIsUploading(true);
+
+    try {
+      const result = await uploadImage(data);
+      setFormData(prev => ({ ...prev, imageUrl: result.url }));
+      toast.success("Image uploaded! Don't forget to save.");
+    } catch (error) {
+      toast.error('Failed to upload image');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -88,10 +109,19 @@ const ProjectsManager = () => {
   const openModal = (project = null) => {
     if (project) {
       setEditingProject(project);
-      setFormData(project);
+      setFormData({
+        title: project.title || '',
+        description: project.description || '',
+        techStack: project.techStack || [],
+        githubUrl: project.githubUrl || '',
+        liveUrl: project.liveUrl || '',
+        category: project.category || '',
+        visible: project.visible !== undefined ? project.visible : true,
+        imageUrl: project.imageUrl || ''
+      });
     } else {
       setEditingProject(null);
-      setFormData({ title: '', description: '', techStack: [], githubUrl: '', liveUrl: '', category: '', visible: true });
+      setFormData({ title: '', description: '', techStack: [], githubUrl: '', liveUrl: '', category: '', visible: true, imageUrl: '' });
     }
     setIsModalOpen(true);
   };
@@ -211,6 +241,41 @@ const ProjectsManager = () => {
                     </span>
                   ))}
                   <input type="text" value={techInput} onChange={e => setTechInput(e.target.value)} onKeyDown={handleAddTech} placeholder="e.g. React" className="bg-transparent outline-none flex-1 min-w-[100px] text-sm" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm mb-1 opacity-80 font-medium">Project Image</label>
+                <div className="flex gap-4 items-center">
+                  {formData.imageUrl && (
+                    <div className="w-16 h-10 rounded-lg overflow-hidden border border-white/10 flex-shrink-0">
+                      <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  <input 
+                    type="text" 
+                    placeholder="e.g. https://example.com/project-image.png" 
+                    value={formData.imageUrl} 
+                    onChange={e => setFormData({...formData, imageUrl: e.target.value})} 
+                    className="flex-1 px-3 py-2 rounded-lg bg-black/10 dark:bg-white/5 border border-white/10 focus:border-primary outline-none text-sm animate-fade-in" 
+                  />
+                  <div className="relative">
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleImageUpload} 
+                      disabled={isUploading} 
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-default" 
+                    />
+                    <button 
+                      type="button" 
+                      disabled={isUploading} 
+                      className="px-4 py-2 rounded-lg bg-black/10 dark:bg-white/5 border border-white/10 hover:border-primary transition-colors flex items-center gap-2 text-sm font-medium"
+                    >
+                      {isUploading ? <Loader2 className="animate-spin" size={16} /> : <Upload size={16} />}
+                      Upload
+                    </button>
+                  </div>
                 </div>
               </div>
 
