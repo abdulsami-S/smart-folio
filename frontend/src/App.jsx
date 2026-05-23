@@ -87,27 +87,16 @@ const PortfolioView = () => {
     };
   }, []);
 
-  // Show portfolio only when intro finishes AND data is ready
-  const ready = introComplete && !loading;
+  // Show portfolio once data is ready
+  const showPortfolio = !loading;
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden' }}>
       {/* Global 3D particle constellation — fixed behind everything */}
       <ThreeBackground isDark={isDark} />
-      {/* Intro splash — plays on every page load */}
-      {!introComplete && (
-        <IntroScreen onComplete={() => setIntroComplete(true)} />
-      )}
 
-      {/* Loading fallback — shown only if intro finished but data still loading */}
-      {introComplete && loading && (
-        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg)' }}>
-          <Loader2 style={{ width: 40, height: 40, color: 'var(--accent)', animation: 'spin 1s linear infinite' }} />
-        </div>
-      )}
-
-      {/* Portfolio — rendered once everything is ready */}
-      {ready && (
+      {/* Portfolio — rendered once data is ready */}
+      {showPortfolio && (
         <>
           <Navbar portfolio={portfolio} />
           <main>
@@ -123,6 +112,11 @@ const PortfolioView = () => {
           </main>
           <CustomCursor />
         </>
+      )}
+
+      {/* Intro splash — plays on every page load and overlays the portfolio */}
+      {!introComplete && (
+        <IntroScreen onComplete={() => setIntroComplete(true)} />
       )}
     </div>
   );

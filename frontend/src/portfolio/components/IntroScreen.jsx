@@ -1,153 +1,99 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import { gsap } from 'gsap';
 
-/* ─── WALKING FIGURE (SVG — profile / side view) ─────────────────────────────
- * CSS-animated silhouette in TRUE PROFILE VIEW walking left → right.
- * Arms swing in natural gait (opposite phase to legs, front-to-back).
- * Bright premium gradient stops tailored for the dark loading screen.
+/* ─── MINIMAL WALKING FIGURE (SVG) ──────────────────────────────────────────
+ * Clean silhouette walking loop.
+ * Adapts dynamically using the site's CSS variable tokens.
  * ──────────────────────────────────────────────────────────────────────────── */
 const WalkingFigure = () => (
-  <div style={{ position: 'relative', width: '120px', height: '160px' }}>
+  <div style={{ position: 'relative', width: '100px', height: '140px' }}>
     <style>{`
-      /* Body bob — torso gently rises/falls each step */
       @keyframes body-bob {
         0%, 100% { transform: translateY(0px); }
-        50%       { transform: translateY(-4px); }
+        50%       { transform: translateY(-3px); }
       }
-
-      /* ── LEGS — swing forward/back in the sagittal (walking) plane ── */
-      /* Left leg: starts forward, swings back */
       @keyframes leg-left {
-        0%   { transform: rotate(-30deg); }
-        50%  { transform: rotate(30deg);  }
-        100% { transform: rotate(-30deg); }
-      }
-      /* Right leg: opposite phase (starts back) */
-      @keyframes leg-right {
-        0%   { transform: rotate(30deg);  }
-        50%  { transform: rotate(-30deg); }
-        100% { transform: rotate(30deg);  }
-      }
-
-      /* ── ARMS — natural gait: swing opposite to legs ── */
-      /* Left arm: starts back when left leg is forward */
-      @keyframes arm-left {
-        0%   { transform: rotate(25deg);  }
-        50%  { transform: rotate(-25deg); }
-        100% { transform: rotate(25deg);  }
-      }
-      /* Right arm: starts forward when right leg is back */
-      @keyframes arm-right {
         0%   { transform: rotate(-25deg); }
         50%  { transform: rotate(25deg);  }
         100% { transform: rotate(-25deg); }
       }
-
-      /* ── HEAD — subtle forward-lean bob ── */
+      @keyframes leg-right {
+        0%   { transform: rotate(25deg);  }
+        50%  { transform: rotate(-25deg); }
+        100% { transform: rotate(25deg);  }
+      }
+      @keyframes arm-left {
+        0%   { transform: rotate(20deg);  }
+        50%  { transform: rotate(-20deg); }
+        100% { transform: rotate(20deg);  }
+      }
+      @keyframes arm-right {
+        0%   { transform: rotate(-20deg); }
+        50%  { transform: rotate(20deg);  }
+        100% { transform: rotate(-20deg); }
+      }
       @keyframes head-lean {
-        0%, 100% { transform: rotate(-3deg); }
-        50%       { transform: rotate(3deg);  }
+        0%, 100% { transform: rotate(-2deg); }
+        50%       { transform: rotate(2deg);  }
       }
 
-      /* ── FEET — flatten on ground contact ── */
-      @keyframes foot-left {
-        0%   { transform: rotate(12deg);  }
-        50%  { transform: rotate(-8deg);  }
-        100% { transform: rotate(12deg);  }
-      }
-      @keyframes foot-right {
-        0%   { transform: rotate(-8deg);  }
-        50%  { transform: rotate(12deg);  }
-        100% { transform: rotate(-8deg);  }
-      }
-
-      /* Shadow pulses with stride */
-      @keyframes shadow-pulse {
-        0%, 100% { transform: scaleX(0.8); opacity: 0.25; }
-        50%       { transform: scaleX(1.1); opacity: 0.12; }
-      }
-
-      .fig-body   { animation: body-bob   0.55s ease-in-out infinite; }
-      .fig-leg-l  { animation: leg-left   0.55s ease-in-out infinite; transform-origin: top center; }
-      .fig-leg-r  { animation: leg-right  0.55s ease-in-out infinite; transform-origin: top center; }
-      .fig-arm-l  { animation: arm-left   0.55s ease-in-out infinite; transform-origin: top center; }
-      .fig-arm-r  { animation: arm-right  0.55s ease-in-out infinite; transform-origin: top center; }
-      .fig-head   { animation: head-lean  0.55s ease-in-out infinite; transform-origin: bottom center; }
-      .fig-foot-l { animation: foot-left  0.55s ease-in-out infinite; transform-origin: top center; }
-      .fig-foot-r { animation: foot-right 0.55s ease-in-out infinite; transform-origin: top center; }
-      .fig-shadow { animation: shadow-pulse 0.55s ease-in-out infinite; transform-origin: center; }
+      .fig-body   { animation: body-bob   0.6s ease-in-out infinite; }
+      .fig-leg-l  { animation: leg-left   0.6s ease-in-out infinite; transform-origin: top center; }
+      .fig-leg-r  { animation: leg-right  0.6s ease-in-out infinite; transform-origin: top center; }
+      .fig-arm-l  { animation: arm-left   0.6s ease-in-out infinite; transform-origin: top center; }
+      .fig-arm-r  { animation: arm-right  0.6s ease-in-out infinite; transform-origin: top center; }
+      .fig-head   { animation: head-lean  0.6s ease-in-out infinite; transform-origin: bottom center; }
     `}</style>
 
-    <svg viewBox="0 0 120 160" width="120" height="160" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 120 160" width="100" height="140" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        {/* Bright premium gradient — top light to bottom dark */}
         <linearGradient id="figGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%"   stopColor="#ffd3b6" stopOpacity="1" />
-          <stop offset="60%"  stopColor="#e8a87c" stopOpacity="1" />
-          <stop offset="100%" stopColor="#c9704a" stopOpacity="0.8" />
+          <stop offset="0%"   stopColor="var(--accent-light)" />
+          <stop offset="100%" stopColor="var(--accent)" />
         </linearGradient>
-        {/* Darker back-limb gradient */}
         <linearGradient id="figGradBack" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%"   stopColor="#c9704a" stopOpacity="0.75" />
-          <stop offset="100%" stopColor="#9b3d1e" stopOpacity="0.5"  />
-        </linearGradient>
-        <linearGradient id="shadowGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%"   stopColor="#c9704a" stopOpacity="0.30" />
-          <stop offset="100%" stopColor="#c9704a" stopOpacity="0"    />
+          <stop offset="0%"   stopColor="var(--accent)" stopOpacity="0.75" />
+          <stop offset="100%" stopColor="var(--accent-dark)" stopOpacity="0.5" />
         </linearGradient>
       </defs>
-
-      {/* ── Ground shadow ── */}
-      <ellipse className="fig-shadow" cx="62" cy="152" rx="26" ry="5" fill="url(#shadowGrad)" />
 
       {/* ══ Body group ══ */}
       <g className="fig-body" style={{ transformOrigin: '62px 85px' }}>
 
-        {/* ── BACK LEG ── */}
+        {/* BACK LEG */}
         <g className="fig-leg-r" style={{ transformOrigin: '62px 91px' }}>
-          <rect x="57" y="90" width="10" height="28" rx="5" fill="url(#figGradBack)" opacity="0.72" />
-          <rect x="57" y="116" width="9" height="22" rx="4" fill="#9b3d1e" opacity="0.60" />
-          <g className="fig-foot-r" style={{ transformOrigin: '61px 138px' }}>
-            <rect x="56" y="136" width="20" height="7" rx="3" fill="#7a2d0e" opacity="0.65" />
-          </g>
+          <rect x="57" y="90" width="10" height="28" rx="5" fill="url(#figGradBack)" />
+          <rect x="57" y="116" width="9" height="22" rx="4" fill="var(--accent-dark)" opacity="0.6" />
         </g>
 
-        {/* ── BACK ARM ── */}
+        {/* BACK ARM */}
         <g className="fig-arm-l" style={{ transformOrigin: '60px 60px' }}>
-          <rect x="56" y="59" width="8" height="22" rx="4" fill="url(#figGradBack)" opacity="0.68" />
-          <rect x="56" y="79" width="7" height="18" rx="3" fill="#9b3d1e" opacity="0.55" />
-          <ellipse cx="59" cy="99" rx="4" ry="5" fill="#c9704a" opacity="0.55" />
+          <rect x="56" y="59" width="8" height="22" rx="4" fill="url(#figGradBack)" />
         </g>
 
-        {/* ── TORSO ── */}
+        {/* TORSO */}
         <rect x="52" y="55" width="20" height="38" rx="7" fill="url(#figGrad)" />
 
-        {/* ── HEAD ── */}
+        {/* HEAD */}
         <g className="fig-head" style={{ transformOrigin: '66px 32px' }}>
-          <ellipse cx="66" cy="32" rx="13" ry="15" fill="#ffd3b6" />
-          <ellipse cx="78" cy="34" rx="3.5" ry="2.5" fill="#e8a87c" />
-          <ellipse cx="54" cy="32" rx="3" ry="5" fill="#c9704a" opacity="0.70" />
-          <ellipse cx="73" cy="29" rx="1.8" ry="1.8" fill="#381932" opacity="0.75" />
+          <ellipse cx="66" cy="32" rx="13" ry="15" fill="var(--accent-light)" />
+          <ellipse cx="78" cy="34" rx="3.5" ry="2.5" fill="var(--accent)" />
+          <ellipse cx="73" cy="29" rx="1.8" ry="1.8" fill="var(--accent-dark)" opacity="0.8" />
         </g>
 
-        {/* ── NECK ── */}
-        <rect x="60" y="46" width="8" height="12" rx="3" fill="#e8a87c" />
+        {/* NECK */}
+        <rect x="60" y="46" width="8" height="12" rx="3" fill="var(--accent-light)" />
 
-        {/* ── FRONT ARM ── */}
+        {/* FRONT ARM */}
         <g className="fig-arm-r" style={{ transformOrigin: '65px 60px' }}>
-          <rect x="61" y="59" width="8" height="22" rx="4" fill="#e8a87c" />
-          <rect x="62" y="79" width="7" height="18" rx="3" fill="#c9704a" />
-          <ellipse cx="65" cy="99" rx="4" ry="5" fill="#ffd3b6" />
+          <rect x="61" y="59" width="8" height="22" rx="4" fill="var(--accent-light)" />
+          <rect x="62" y="79" width="7" height="18" rx="3" fill="var(--accent)" />
         </g>
 
-        {/* ── FRONT LEG ── */}
+        {/* FRONT LEG */}
         <g className="fig-leg-l" style={{ transformOrigin: '62px 91px' }}>
           <rect x="57" y="90" width="10" height="28" rx="5" fill="url(#figGrad)" />
-          <ellipse cx="62" cy="110" rx="6" ry="4" fill="#c9704a" opacity="0.45" />
-          <rect x="57" y="116" width="9" height="22" rx="4" fill="#ffd3b6" />
-          <g className="fig-foot-l" style={{ transformOrigin: '62px 138px' }}>
-            <rect x="57" y="136" width="22" height="7" rx="3" fill="#c9704a" />
-          </g>
+          <rect x="57" y="116" width="9" height="22" rx="4" fill="var(--accent-light)" />
         </g>
 
       </g>
@@ -155,10 +101,10 @@ const WalkingFigure = () => (
   </div>
 );
 
-/* ─── INTRO SCREEN ────────────────────────────────────────────────────────── */
+/* ─── DECENT & SOPHISTICATED INTRO SCREEN ────────────────────────────────── */
 const IntroScreen = ({ onComplete }) => {
   const containerRef   = useRef(null);
-  const cardRef        = useRef(null);
+  const contentRef     = useRef(null);
   const welcomeRef     = useRef(null);
   const figureRef      = useRef(null);
   const percentRef     = useRef(null);
@@ -168,46 +114,22 @@ const IntroScreen = ({ onComplete }) => {
 
   useEffect(() => {
     const container   = containerRef.current;
-    const card        = cardRef.current;
+    const content     = contentRef.current;
     const welcomeEl   = welcomeRef.current;
     const figure      = figureRef.current;
     const percentEl   = percentRef.current;
     const progressBar = progressBarRef.current;
 
-    if (!container || !card || !welcomeEl || !figure || !percentEl || !progressBar) return;
+    if (!container || !content || !welcomeEl || !figure || !percentEl || !progressBar) return;
 
-    // Start everything hidden/offset
+    // Set initial animations states
     gsap.set(welcomeEl,   { opacity: 0, y: 15 });
-    gsap.set(figure,      { opacity: 0, scale: 0.9, y: 15 });
+    gsap.set(figure,      { opacity: 0, scale: 0.96, y: 10 });
     gsap.set(percentEl,   { opacity: 0, y: 10 });
-    gsap.set(progressRef.current, { opacity: 0, y: 10 });
+    gsap.set(progressRef.current, { opacity: 0 });
     gsap.set(progressBar, { scaleX: 0, transformOrigin: 'left center' });
-    gsap.set(card,        { opacity: 0, scale: 0.95 });
-    
-    // Set initial clip path for premium reveal transition
-    gsap.set(container, {
-      opacity: 1,
-      clipPath: 'circle(150% at 50% 50%)',
-      WebkitClipPath: 'circle(150% at 50% 50%)',
-    });
-
-    // Slow floating animations for background ambient lights
-    const anim1 = gsap.to('.ambient-light-1', {
-      x: '15vw',
-      y: '10vh',
-      duration: 8,
-      repeat: -1,
-      yoyo: true,
-      ease: 'sine.inOut',
-    });
-    const anim2 = gsap.to('.ambient-light-2', {
-      x: '-12vw',
-      y: '-8vh',
-      duration: 10,
-      repeat: -1,
-      yoyo: true,
-      ease: 'sine.inOut',
-    });
+    gsap.set(content,     { opacity: 0 });
+    gsap.set(container,   { yPercent: 0 });
 
     const counter = { val: 0 };
     const tl = gsap.timeline({
@@ -216,10 +138,11 @@ const IntroScreen = ({ onComplete }) => {
       }
     });
 
-    // t=0s — Fade & scale in the glassmorphic container
-    tl.to(card, {
-      opacity: 1, scale: 1,
-      duration: 0.8, ease: 'power3.out',
+    // t=0s — Fade in the content area gently
+    tl.to(content, {
+      opacity: 1,
+      duration: 0.8,
+      ease: 'power2.out',
     }, 0);
 
     // t=0.2s — Slide up and fade in welcome text
@@ -234,17 +157,17 @@ const IntroScreen = ({ onComplete }) => {
       duration: 0.8, ease: 'power3.out',
     }, 0.4);
 
-    // t=0.6s — Fade & slide in percent + progress bar
+    // t=0.6s — Fade in percentage and progress track
     tl.to([percentEl, progressRef.current], {
       opacity: 1, y: 0,
       duration: 0.6, ease: 'power3.out',
     }, 0.6);
 
-    // t=0.6s → 3.3s — Percentage ticks 0 → 100
+    // t=0.6s → 3.2s — Percentage ticks 0 → 100
     tl.to(counter, {
       val: 100,
-      duration: 2.7,
-      ease: 'power2.inOut',
+      duration: 2.6,
+      ease: 'power2.out',
       onUpdate: () => {
         if (percentEl) percentEl.textContent = Math.round(counter.val);
       },
@@ -253,33 +176,30 @@ const IntroScreen = ({ onComplete }) => {
     // Progress bar fills in sync
     tl.to(progressBar, {
       scaleX: 1,
-      duration: 2.7,
-      ease: 'power2.inOut',
+      duration: 2.6,
+      ease: 'power2.out',
     }, 0.6);
 
-    // t=3.3s — Hold at 100% briefly
-    tl.to({}, { duration: 0.4 }, 3.3);
+    // t=3.2s — Hold at 100% briefly
+    tl.to({}, { duration: 0.3 }, 3.2);
 
-    // t=3.7s — Scale down and fade out the center card (anticipation)
-    tl.to(card, {
-      scale: 0.92,
+    // t=3.5s — Fade out inner content slightly as transition anticipation
+    tl.to(content, {
       opacity: 0,
-      duration: 0.5,
+      y: -20,
+      duration: 0.55,
       ease: 'power3.inOut',
-    }, 3.7);
+    }, 3.5);
 
-    // t=3.9s — Premium clip-path circular contraction (iris transition) to reveal site
+    // t=3.6s — Smooth, hardware-accelerated slide-up reveal of the home page
     tl.to(container, {
-      clipPath: 'circle(0% at 50% 50%)',
-      WebkitClipPath: 'circle(0% at 50% 50%)',
-      duration: 1.1,
+      yPercent: -100,
+      duration: 1.15,
       ease: 'power4.inOut',
-    }, 3.9);
+    }, 3.6);
 
     return () => {
       tl.kill();
-      anim1.kill();
-      anim2.kill();
     };
   }, [stableComplete]);
 
@@ -291,118 +211,90 @@ const IntroScreen = ({ onComplete }) => {
         position: 'fixed',
         inset: 0,
         zIndex: 99999,
-        backgroundColor: '#0c050d',        /* Cinematic deep dark plum background */
+        backgroundColor: 'var(--bg)', /* Match the site background exactly */
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        pointerEvents: 'none',
+        pointerEvents: 'auto',
         overflow: 'hidden',
       }}
     >
-      {/* Floating dynamic background glow 1 */}
+      {/* Subtle radial ambient gradient background matching the site's accent token */}
       <div
-        className="ambient-light-1"
         style={{
           position: 'absolute',
-          top: '5%',
-          left: '10%',
-          width: '450px',
-          height: '450px',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(201,112,74,0.14) 0%, transparent 75%)',
-          filter: 'blur(90px)',
+          inset: 0,
+          background: 'radial-gradient(circle at 50% 50%, rgba(201, 112, 74, 0.03) 0%, transparent 65%)',
           pointerEvents: 'none',
+          zIndex: 1,
         }}
       />
 
-      {/* Floating dynamic background glow 2 */}
+      {/* ── Minimalist Content Layout ── */}
       <div
-        className="ambient-light-2"
-        style={{
-          position: 'absolute',
-          bottom: '5%',
-          right: '10%',
-          width: '500px',
-          height: '500px',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(232,168,124,0.08) 0%, transparent 75%)',
-          filter: 'blur(100px)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* ── Glassmorphic Loader Container ── */}
-      <div
-        ref={cardRef}
+        ref={contentRef}
         style={{
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          padding: '3rem 3.5rem',
-          borderRadius: '28px',
-          border: '1px solid rgba(255, 243, 230, 0.05)',
-          background: 'linear-gradient(135deg, rgba(255,243,230,0.03) 0%, rgba(255,243,230,0.01) 100%)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          boxShadow: '0 30px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)',
+          justifyContent: 'center',
           position: 'relative',
           zIndex: 2,
-          maxWidth: '90%',
-          width: '380px',
+          width: '320px',
         }}
       >
-        {/* ── Welcome text ── */}
-        <div style={{ overflow: 'hidden', marginBottom: '1.5rem', width: '100%' }}>
+        {/* Welcome greeting */}
+        <div style={{ overflow: 'hidden', marginBottom: '2rem', width: '100%' }}>
           <p
             ref={welcomeRef}
             style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: '0.85rem',
+              fontFamily: 'var(--font-display)',
+              fontSize: '1.25rem',
               fontWeight: 400,
-              letterSpacing: '0.04em',
-              color: 'rgba(255,243,230,0.85)',
+              letterSpacing: '0.03em',
+              color: 'var(--fg)',
+              opacity: 0.85,
               textAlign: 'center',
-              lineHeight: '1.5',
+              lineHeight: '1.4',
               margin: 0,
             }}
           >
-            Hello, welcome to <span style={{ color: '#e8a87c', fontWeight: 500 }}>Abdul Sami&apos;s</span> portfolio!
+            Welcome to <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', color: 'var(--accent-light)', fontWeight: 500 }}>Abdul Sami&apos;s</span> portfolio
           </p>
         </div>
 
-        {/* ── Walking Figure centerpiece ── */}
-        <div ref={figureRef} style={{ marginBottom: '1.8rem' }}>
+        {/* Walking Figure centerpiece */}
+        <div ref={figureRef} style={{ marginBottom: '2rem' }}>
           <WalkingFigure />
         </div>
 
-        {/* ── Percentage counter ── */}
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '3px', marginBottom: '1rem' }}>
+        {/* Percentage counter */}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '3px', marginBottom: '1.2rem' }}>
           <span
             ref={percentRef}
             style={{
-              fontFamily: 'monospace',
-              fontSize: '2.4rem',
-              fontWeight: 800,
-              letterSpacing: '-0.03em',
-              color: '#fff3e6',
+              fontFamily: 'var(--font-body)',
+              fontSize: '1.05rem',
+              fontWeight: 300,
+              letterSpacing: '-0.02em',
+              color: 'var(--fg)',
               fontVariantNumeric: 'tabular-nums',
             }}
           >
             0
           </span>
-          <span style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--accent)' }}>%</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', fontWeight: 500, color: 'var(--accent-light)', opacity: 0.8 }}>%</span>
         </div>
 
-        {/* ── Progress track + bar ── */}
+        {/* 1px Minimalist Progress Line */}
         <div
           ref={progressRef}
           style={{
             position: 'relative',
-            width: '200px',
-            height: '2px',
-            backgroundColor: 'rgba(255,243,230,0.06)',
-            borderRadius: '1px',
+            width: '180px',
+            height: '1px',
+            backgroundColor: 'var(--fg-10)',
             overflow: 'hidden',
           }}
         >
@@ -411,7 +303,7 @@ const IntroScreen = ({ onComplete }) => {
             style={{
               position: 'absolute',
               inset: 0,
-              background: 'linear-gradient(90deg, #9b3d1e, #c9704a, #e8a87c, #ffffff)',
+              backgroundColor: 'var(--accent)',
               transformOrigin: 'left center',
             }}
           />
