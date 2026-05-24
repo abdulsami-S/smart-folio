@@ -72,6 +72,7 @@ const FloatingHeading = ({ words, className, style, delay = 0, isDark = true }) 
 const SwipeBtn = ({ children, className, style, href, target, rel, variant = 'primary' }) => {
   const wrapRef  = useRef(null);
   const contentRef = useRef(null);
+  const idleTweenRef = useRef(null);
   
   const isPrimary = variant === 'primary';
   const baseBg = isPrimary ? 'linear-gradient(135deg, #c9704a, #9b3d1e)' : 'transparent';
@@ -91,28 +92,102 @@ const SwipeBtn = ({ children, className, style, href, target, rel, variant = 'pr
     if (!wrap) return;
     
     // Idle float
-    gsap.to(wrap, {
+    idleTweenRef.current = gsap.to(wrap, {
       y: isPrimary ? -6 : -4,
       duration: 1.8 + Math.random() * 0.8,
       repeat: -1, yoyo: true, ease: 'sine.inOut',
       delay: isPrimary ? 0 : 0.6,
     });
     
-    return () => gsap.killTweensOf(wrap);
+    return () => {
+      if (idleTweenRef.current) idleTweenRef.current.kill();
+    };
   }, [isPrimary]);
 
   const handleEnter = () => {
+    // Kill the idle tween to avoid animation fighting
+    if (idleTweenRef.current) {
+      idleTweenRef.current.kill();
+      idleTweenRef.current = null;
+    }
+
     if (wrapRef.current) gsap.to(wrapRef.current, { boxShadow: hoverBoxShadow, borderColor: 'rgba(232,168,124,0.5)', duration: 0.3 });
     if (!isPrimary && contentRef.current) gsap.to(contentRef.current, { color: hoverTextColor, duration: 0.3 });
   };
+
+  const handleMouseMove = (e) => {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+
+    const rect = wrap.getBoundingClientRect();
+    const x = e.clientX - (rect.left + rect.width / 2);
+    const y = e.clientY - (rect.top + rect.height / 2);
+
+    // Magnetic pull strength (max 14px translation)
+    const strength = 14;
+    const xMove = (x / (rect.width / 2)) * strength;
+    const yMove = (y / (rect.height / 2)) * strength;
+
+    gsap.to(wrap, {
+      x: xMove,
+      y: yMove,
+      duration: 0.35,
+      ease: 'power2.out',
+      overwrite: 'auto'
+    });
+
+    if (contentRef.current) {
+      gsap.to(contentRef.current, {
+        x: xMove * 0.35,
+        y: yMove * 0.35,
+        duration: 0.35,
+        ease: 'power2.out',
+        overwrite: 'auto'
+      });
+    }
+  };
+
   const handleLeave = () => {
-    if (wrapRef.current) gsap.to(wrapRef.current, { boxShadow: boxShadow, borderColor: borderColor, duration: 0.3 });
-    if (!isPrimary && contentRef.current) gsap.to(contentRef.current, { color: defaultTextColor, duration: 0.3 });
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+
+    // Smooth elastic spring back to center
+    gsap.to(wrap, {
+      x: 0,
+      y: 0,
+      boxShadow: boxShadow,
+      borderColor: borderColor,
+      duration: 0.8,
+      ease: 'elastic.out(1.1, 0.4)',
+      overwrite: 'auto',
+      onComplete: () => {
+        // Resume idle float
+        if (!idleTweenRef.current && wrapRef.current) {
+          idleTweenRef.current = gsap.to(wrapRef.current, {
+            y: isPrimary ? -6 : -4,
+            duration: 1.8 + Math.random() * 0.8,
+            repeat: -1, yoyo: true, ease: 'sine.inOut'
+          });
+        }
+      }
+    });
+
+    if (contentRef.current) {
+      gsap.to(contentRef.current, {
+        x: 0,
+        y: 0,
+        color: !isPrimary ? defaultTextColor : undefined,
+        duration: 0.8,
+        ease: 'elastic.out(1.1, 0.4)',
+        overwrite: 'auto'
+      });
+    }
   };
 
   return (
     <a ref={wrapRef} href={href} target={target} rel={rel}
       onMouseEnter={handleEnter}
+      onMouseMove={handleMouseMove}
       onMouseLeave={handleLeave}
       className={`group relative inline-flex items-center gap-[0.6rem] overflow-hidden cursor-none transition-colors duration-300 ${className}`}
       style={{
@@ -196,27 +271,72 @@ const CursorDot = () => {
   const pos = useRef({ x: window.innerWidth/2, y: window.innerHeight/2 });
   const cur = useRef({ x: window.innerWidth/2, y: window.innerHeight/2 });
   const ring = useRef({ x: window.innerWidth/2, y: window.innerHeight/2 });
+  
+  const ringScale = useRef(1);
+  const dotScale = useRef(1);
+
   useEffect(() => {
     const move = (e) => { pos.current = { x: e.clientX, y: e.clientY }; };
     window.addEventListener('mousemove', move);
+
+    const onOver = (e) => {
+      const target = e.target.closest('a') || e.target.closest('button');
+      if (target) {
+        ringScale.current = 1.6;
+        dotScale.current = 0.3;
+        if (ringRef.current) ringRef.current.style.borderColor = 'var(--accent)';
+      }
+    };
+
+    const onOut = (e) => {
+      const target = e.target.closest('a') || e.target.closest('button');
+      if (target) {
+        ringScale.current = 1.0;
+        dotScale.current = 1.0;
+        if (ringRef.current) ringRef.current.style.borderColor = 'rgba(201,112,74,0.4)';
+      }
+    };
+
+    window.addEventListener('mouseover', onOver);
+    window.addEventListener('mouseout', onOut);
+
     let fid;
-    const lerp = (a,b,t) => a+(b-a)*t;
+    const lerp = (a, b, t) => a + (b - a) * t;
+    let currentRingScale = 1;
+    let currentDotScale = 1;
+
     const tick = () => {
-      cur.current.x = lerp(cur.current.x,pos.current.x,0.2);
-      cur.current.y = lerp(cur.current.y,pos.current.y,0.2);
-      ring.current.x = lerp(ring.current.x,pos.current.x,0.08);
-      ring.current.y = lerp(ring.current.y,pos.current.y,0.08);
-      if (dotRef.current) dotRef.current.style.transform = `translate(${cur.current.x-5}px,${cur.current.y-5}px)`;
-      if (ringRef.current) ringRef.current.style.transform = `translate(${ring.current.x-18}px,${ring.current.y-18}px)`;
+      cur.current.x = lerp(cur.current.x, pos.current.x, 0.2);
+      cur.current.y = lerp(cur.current.y, pos.current.y, 0.2);
+      ring.current.x = lerp(ring.current.x, pos.current.x, 0.08);
+      ring.current.y = lerp(ring.current.y, pos.current.y, 0.08);
+
+      currentRingScale = lerp(currentRingScale, ringScale.current, 0.15);
+      currentDotScale = lerp(currentDotScale, dotScale.current, 0.15);
+
+      if (dotRef.current) {
+        dotRef.current.style.transform = `translate(${cur.current.x - 5}px, ${cur.current.y - 5}px) scale(${currentDotScale})`;
+      }
+      if (ringRef.current) {
+        ringRef.current.style.transform = `translate(${ring.current.x - 18}px, ${ring.current.y - 18}px) scale(${currentRingScale})`;
+      }
       fid = requestAnimationFrame(tick);
     };
+
     tick();
-    return () => { window.removeEventListener('mousemove',move); cancelAnimationFrame(fid); };
+
+    return () => {
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseover', onOver);
+      window.removeEventListener('mouseout', onOut);
+      cancelAnimationFrame(fid);
+    };
   }, []);
+
   return (
     <>
-      <div ref={ringRef} className="fixed pointer-events-none" style={{ zIndex:9997,top:0,left:0,width:'36px',height:'36px',borderRadius:'50%',border:'1px solid rgba(201,112,74,0.4)' }} />
-      <div ref={dotRef} className="fixed pointer-events-none" style={{ zIndex:9999,top:0,left:0,width:'10px',height:'10px',borderRadius:'50%',backgroundColor:'var(--accent)',opacity:0.9,mixBlendMode:'screen',boxShadow:'0 0 14px rgba(201,112,74,0.8)' }} />
+      <div ref={ringRef} className="fixed pointer-events-none" style={{ zIndex:9997,top:0,left:0,width:'36px',height:'36px',borderRadius:'50%',border:'1px solid rgba(201,112,74,0.4)', transition: 'border-color 0.3s ease' }} />
+      <div ref={dotRef} className="fixed pointer-events-none" style={{ zIndex:9999,top:0,left:0,width:'10px',height:'10px',borderRadius:'50%',backgroundColor:'var(--accent)',opacity:0.9,mixBlendMode:'screen',boxShadow:'0 0 14px rgba(201,112,74,0.8)', transition: 'background-color 0.3s ease' }} />
     </>
   );
 };
