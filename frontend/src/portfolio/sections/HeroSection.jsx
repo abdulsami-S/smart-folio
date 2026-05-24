@@ -75,17 +75,18 @@ const SwipeBtn = ({ children, className, style, href, target, rel, variant = 'pr
   const idleTweenRef = useRef(null);
   
   const isPrimary = variant === 'primary';
-  const baseBg = isPrimary ? 'linear-gradient(135deg, #c9704a, #9b3d1e)' : 'transparent';
-  const borderColor = isPrimary ? 'rgba(232,168,124,0.3)' : 'rgba(201,112,74,0.5)';
+  const baseBg = 'transparent';
+  const borderColor = isPrimary ? 'var(--accent)' : 'var(--fg-40)';
+  const hoverBorderColor = 'var(--accent)';
   
   // For primary, swipe in a reversed gradient for a vibrant shift. For outline, fill with standard gradient.
-  const swipeBg = isPrimary ? 'linear-gradient(135deg, #9b3d1e, #c9704a)' : 'linear-gradient(135deg, #c9704a, #9b3d1e)';
+  const swipeBg = isPrimary ? 'linear-gradient(135deg, #c9704a, #9b3d1e)' : 'linear-gradient(135deg, #9b3d1e, #c9704a)';
   
-  const defaultTextColor = isPrimary ? '#fff3e6' : 'var(--fg)';
+  const defaultTextColor = isPrimary ? 'var(--accent)' : 'var(--fg)';
   const hoverTextColor = '#fff3e6'; // Both variants go/stay light on hover due to backgrounds
   
-  const boxShadow = isPrimary ? '0 8px 24px rgba(201,112,74,0.3)' : 'none';
-  const hoverBoxShadow = isPrimary ? '0 12px 32px rgba(201,112,74,0.5)' : '0 8px 24px rgba(201,112,74,0.3)';
+  const boxShadow = 'none';
+  const hoverBoxShadow = isPrimary ? '0 12px 32px rgba(201,112,74,0.4)' : '0 12px 32px rgba(201,112,74,0.2)';
   
   useEffect(() => {
     const wrap = wrapRef.current;
@@ -111,8 +112,8 @@ const SwipeBtn = ({ children, className, style, href, target, rel, variant = 'pr
       idleTweenRef.current = null;
     }
 
-    if (wrapRef.current) gsap.to(wrapRef.current, { boxShadow: hoverBoxShadow, borderColor: 'rgba(232,168,124,0.5)', duration: 0.3 });
-    if (!isPrimary && contentRef.current) gsap.to(contentRef.current, { color: hoverTextColor, duration: 0.3 });
+    if (wrapRef.current) gsap.to(wrapRef.current, { boxShadow: hoverBoxShadow, borderColor: hoverBorderColor, duration: 0.3 });
+    if (contentRef.current) gsap.to(contentRef.current, { color: hoverTextColor, duration: 0.3 });
   };
 
   const handleMouseMove = (e) => {
@@ -176,7 +177,7 @@ const SwipeBtn = ({ children, className, style, href, target, rel, variant = 'pr
       gsap.to(contentRef.current, {
         x: 0,
         y: 0,
-        color: !isPrimary ? defaultTextColor : undefined,
+        color: defaultTextColor,
         duration: 0.8,
         ease: 'elastic.out(1.1, 0.4)',
         overwrite: 'auto'
@@ -189,11 +190,11 @@ const SwipeBtn = ({ children, className, style, href, target, rel, variant = 'pr
       onMouseEnter={handleEnter}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleLeave}
-      className={`group relative inline-flex items-center gap-[0.6rem] overflow-hidden cursor-none transition-colors duration-300 ${className}`}
+      className={`group relative inline-flex items-center gap-[0.6rem] overflow-hidden cursor-none ${className}`}
       style={{
         padding: '14px 32px',
         background: baseBg,
-        border: `1px solid ${borderColor}`,
+        border: '2px solid ' + borderColor,
         fontWeight: 700,
         fontSize: '0.75rem',
         letterSpacing: '0.18em',
@@ -203,10 +204,10 @@ const SwipeBtn = ({ children, className, style, href, target, rel, variant = 'pr
         ...style
       }}
     >
-      {/* Swipe background layer */}
+      {/* Expanding background layer */}
       <span 
-        className="absolute inset-0 w-full h-full -translate-x-full group-hover:translate-x-0 transition-transform duration-[400ms] ease-[cubic-bezier(0.19,1,0.22,1)]"
-        style={{ background: swipeBg }} 
+        className="absolute inset-0 w-full h-full scale-0 group-hover:scale-100 transition-transform duration-[350ms] ease-[cubic-bezier(0.25,1,0.5,1)]"
+        style={{ background: swipeBg, borderRadius: 'inherit', zIndex: 1 }} 
       />
       
       {/* Content wrapper */}
