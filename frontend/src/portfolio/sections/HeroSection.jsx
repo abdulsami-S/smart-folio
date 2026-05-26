@@ -70,20 +70,17 @@ const FloatingHeading = ({ words, className, style, delay = 0, isDark = true }) 
  * Maintains idle float and asymmetric border-radius styling.
  * ──────────────────────────────────────────────────────────────────────────── */
 const SwipeBtn = ({ children, className, style, href, target, rel, variant = 'primary' }) => {
-  const wrapRef  = useRef(null);
-  const contentRef = useRef(null);
-  const idleTweenRef = useRef(null);
-  
+  const wrapRef = useRef(null);
   const isPrimary = variant === 'primary';
-  const baseBg = 'transparent';
+  
   const borderColor = isPrimary ? 'var(--accent)' : 'var(--fg-40)';
   const hoverBorderColor = 'var(--accent)';
   
-  // For primary, swipe in a reversed gradient for a vibrant shift. For outline, fill with standard gradient.
+  // Accent gradient colors
   const swipeBg = isPrimary ? 'linear-gradient(135deg, #c9704a, #9b3d1e)' : 'linear-gradient(135deg, #9b3d1e, #c9704a)';
   
   const defaultTextColor = isPrimary ? 'var(--accent)' : 'var(--fg)';
-  const hoverTextColor = '#fff3e6'; // Both variants go/stay light on hover due to backgrounds
+  const hoverTextColor = '#fff3e6';
   
   const boxShadow = 'none';
   const hoverBoxShadow = isPrimary ? '0 12px 32px rgba(201,112,74,0.4)' : '0 12px 32px rgba(201,112,74,0.2)';
@@ -92,126 +89,59 @@ const SwipeBtn = ({ children, className, style, href, target, rel, variant = 'pr
     const wrap = wrapRef.current;
     if (!wrap) return;
     
-    // Idle float
-    idleTweenRef.current = gsap.to(wrap, {
+    // Smooth, gentle idle floating motion
+    const idleTween = gsap.to(wrap, {
       y: isPrimary ? -6 : -4,
-      duration: 1.8 + Math.random() * 0.8,
+      duration: 2.0 + Math.random() * 0.8,
       repeat: -1, yoyo: true, ease: 'sine.inOut',
-      delay: isPrimary ? 0 : 0.6,
+      delay: isPrimary ? 0 : 0.5,
     });
     
     return () => {
-      if (idleTweenRef.current) idleTweenRef.current.kill();
+      idleTween.kill();
     };
   }, [isPrimary]);
 
-  const handleEnter = () => {
-    // Kill the idle tween to avoid animation fighting
-    if (idleTweenRef.current) {
-      idleTweenRef.current.kill();
-      idleTweenRef.current = null;
-    }
-
-    if (wrapRef.current) gsap.to(wrapRef.current, { boxShadow: hoverBoxShadow, borderColor: hoverBorderColor, duration: 0.3 });
-    if (contentRef.current) gsap.to(contentRef.current, { color: hoverTextColor, duration: 0.3 });
-  };
-
-  const handleMouseMove = (e) => {
-    const wrap = wrapRef.current;
-    if (!wrap) return;
-
-    const rect = wrap.getBoundingClientRect();
-    const x = e.clientX - (rect.left + rect.width / 2);
-    const y = e.clientY - (rect.top + rect.height / 2);
-
-    // Magnetic pull strength (max 14px translation)
-    const strength = 14;
-    const xMove = (x / (rect.width / 2)) * strength;
-    const yMove = (y / (rect.height / 2)) * strength;
-
-    gsap.to(wrap, {
-      x: xMove,
-      y: yMove,
-      duration: 0.35,
-      ease: 'power2.out',
-      overwrite: 'auto'
-    });
-
-    if (contentRef.current) {
-      gsap.to(contentRef.current, {
-        x: xMove * 0.35,
-        y: yMove * 0.35,
-        duration: 0.35,
-        ease: 'power2.out',
-        overwrite: 'auto'
-      });
-    }
-  };
-
-  const handleLeave = () => {
-    const wrap = wrapRef.current;
-    if (!wrap) return;
-
-    // Smooth elastic spring back to center
-    gsap.to(wrap, {
-      x: 0,
-      y: 0,
-      boxShadow: boxShadow,
-      borderColor: borderColor,
-      duration: 0.8,
-      ease: 'elastic.out(1.1, 0.4)',
-      overwrite: 'auto',
-      onComplete: () => {
-        // Resume idle float
-        if (!idleTweenRef.current && wrapRef.current) {
-          idleTweenRef.current = gsap.to(wrapRef.current, {
-            y: isPrimary ? -6 : -4,
-            duration: 1.8 + Math.random() * 0.8,
-            repeat: -1, yoyo: true, ease: 'sine.inOut'
-          });
-        }
-      }
-    });
-
-    if (contentRef.current) {
-      gsap.to(contentRef.current, {
-        x: 0,
-        y: 0,
-        color: defaultTextColor,
-        duration: 0.8,
-        ease: 'elastic.out(1.1, 0.4)',
-        overwrite: 'auto'
-      });
-    }
-  };
-
   return (
-    <a ref={wrapRef} href={href} target={target} rel={rel}
-      onMouseEnter={handleEnter}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleLeave}
+    <a 
+      ref={wrapRef}
+      href={href} 
+      target={target} 
+      rel={rel}
       className={`group relative inline-flex items-center gap-[0.6rem] overflow-hidden cursor-none ${className}`}
       style={{
         padding: '14px 32px',
-        background: baseBg,
+        background: 'transparent',
         border: '2px solid ' + borderColor,
+        color: defaultTextColor,
         fontWeight: 700,
         fontSize: '0.75rem',
         letterSpacing: '0.18em',
         textTransform: 'uppercase',
         textDecoration: 'none',
         boxShadow: boxShadow,
+        transition: 'border-color 0.4s cubic-bezier(0.25, 1, 0.5, 1), color 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s cubic-bezier(0.25, 1, 0.5, 1)',
         ...style
       }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = hoverBorderColor;
+        e.currentTarget.style.color = hoverTextColor;
+        e.currentTarget.style.boxShadow = hoverBoxShadow;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = borderColor;
+        e.currentTarget.style.color = defaultTextColor;
+        e.currentTarget.style.boxShadow = boxShadow;
+      }}
     >
-      {/* Expanding background layer */}
+      {/* Background layer - fades in smoothly */}
       <span 
-        className="absolute inset-0 w-full h-full scale-0 group-hover:scale-100 transition-transform duration-[350ms] ease-[cubic-bezier(0.25,1,0.5,1)]"
+        className="absolute inset-0 w-full h-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-[cubic-bezier(0.25,1,0.5,1)]"
         style={{ background: swipeBg, borderRadius: 'inherit', zIndex: 1 }} 
       />
       
       {/* Content wrapper */}
-      <span ref={contentRef} className="relative z-10 flex items-center gap-inherit transition-transform duration-300 group-hover:scale-[1.02]" style={{ color: defaultTextColor }}>
+      <span className="relative z-10 flex items-center gap-inherit transition-transform duration-300 group-hover:scale-[1.02]">
         {children}
       </span>
     </a>
