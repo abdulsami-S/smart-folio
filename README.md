@@ -21,7 +21,7 @@
 <table>
   <tr>
     <td align="center"><b>🚶 Walking Character Preloader</b></td>
-    <td align="center"><b>🌌 Antigravity Hero Section</b></td>
+    <td align="center"><b>🌌 About Section</b></td>
   </tr>
   <tr>
     <td><img src="assets/screenshots/Loading_page.png" width="480" alt="Walking Character Preloader"/></td>
