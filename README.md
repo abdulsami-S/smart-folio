@@ -20,28 +20,34 @@
 
 <table>
   <tr>
+    <td align="center"><b>🚶 Walking Character Preloader</b></td>
     <td align="center"><b>🌌 Antigravity Hero Section</b></td>
+    <td align="center"><b>✨ About Section</b></td>
+  </tr>
+  <tr>
+    <td><img src="assets/screenshots/Loading_page.png" width="320" alt="Walking Character Preloader"/></td>
+    <td><img src="assets/screenshots/Home_Page.png" width="320" alt="Antigravity Hero with Floating Text & Particle Trails"/></td>
+    <td><img src="assets/screenshots/About_Page.png" width="320" alt="About Section Profile & Bio"/></td>
+  </tr>
+  <tr>
+    <td align="center"><b>💼 Experience Timeline</b></td>
     <td align="center"><b>🚀 Horizontal Pin-Scroll Skills</b></td>
-  </tr>
-  <tr>
-    <td><img src="https://raw.githubusercontent.com/abdulsami-S/smart-folio/main/assets/screenshots/hero.png" width="480" alt="Antigravity Hero with Floating Text & Particle Trails"/></td>
-    <td><img src="https://raw.githubusercontent.com/abdulsami-S/smart-folio/main/assets/screenshots/skills.png" width="480" alt="Horizontal Pin Scroll Skills"/></td>
-  </tr>
-  <tr>
     <td align="center"><b>📂 Dynamic Projects Panel</b></td>
+  </tr>
+  <tr>
+    <td><img src="assets/screenshots/Experience_page.png" width="320" alt="Interactive Experience Timeline"/></td>
+    <td><img src="assets/screenshots/Skills_Page.png" width="320" alt="Horizontal Pin Scroll Skills"/></td>
+    <td><img src="assets/screenshots/Projects_page.png" width="320" alt="Interactive Projects Preview"/></td>
+  </tr>
+  <tr>
     <td align="center"><b>📬 Contact</b></td>
-  </tr>
-  <tr>
-    <td><img src="https://raw.githubusercontent.com/abdulsami-S/smart-folio/main/assets/screenshots/projects.png" width="480" alt="Interactive Projects Preview"/></td>
-    <td><img src="https://raw.githubusercontent.com/abdulsami-S/smart-folio/main/assets/screenshots/contact.png" width="480" alt="Contact Form & Live IST Clock"/></td>
-  </tr>
-  <tr>
     <td align="center"><b>🔐 Secure Admin Login</b></td>
     <td align="center"><b>🎛️ CMS Dashboard</b></td>
   </tr>
   <tr>
-    <td><img src="https://raw.githubusercontent.com/abdulsami-S/smart-folio/main/assets/screenshots/login.png" width="480" alt="JWT Admin Login"/></td>
-    <td><img src="https://raw.githubusercontent.com/abdulsami-S/smart-folio/main/assets/screenshots/dashboard.png" width="480" alt="Manage Projects, Skills, Timeline"/></td>
+    <td><img src="assets/screenshots/Contact_page.png" width="320" alt="Contact Form & Live IST Clock"/></td>
+    <td><img src="assets/screenshots/login.png" width="320" alt="JWT Admin Login"/></td>
+    <td><img src="assets/screenshots/dashboard.png" width="320" alt="Manage Projects, Skills, Timeline"/></td>
   </tr>
 </table>
 
