@@ -69,7 +69,7 @@ const FloatingHeading = ({ words, className, style, delay = 0, isDark = true }) 
  * Premium swipe-fill interaction on hover.
  * Maintains idle float and asymmetric border-radius styling.
  * ──────────────────────────────────────────────────────────────────────────── */
-const SwipeBtn = ({ children, className, style, href, target, rel, variant = 'primary' }) => {
+const SwipeBtn = ({ children, className, style, href, target, rel, download, variant = 'primary' }) => {
   const wrapRef = useRef(null);
   const isPrimary = variant === 'primary';
   
@@ -108,6 +108,7 @@ const SwipeBtn = ({ children, className, style, href, target, rel, variant = 'pr
       href={href} 
       target={target} 
       rel={rel}
+      download={download}
       className={`group relative inline-flex items-center gap-[0.6rem] overflow-hidden cursor-none ${className}`}
       style={{
         padding: '14px 32px',
@@ -367,7 +368,7 @@ const Hero = ({ portfolio }) => {
 
               {/* Outline — Resume */}
               <SwipeBtn
-                href="/resume.pdf"
+                href={portfolio?.resumeUrl || "/resume.pdf"}
                 target="_blank" 
                 rel="noopener noreferrer"
                 variant="outline"

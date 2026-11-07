@@ -1,4 +1,5 @@
-require('dotenv').config({ override: true });
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env'), override: true });
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -43,7 +44,6 @@ app.use(cookieParser());
 app.use(morgan('dev'));
 
 // Static serving for uploads
-const path = require('path');
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes

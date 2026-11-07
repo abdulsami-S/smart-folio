@@ -10,7 +10,7 @@ export const updatePortfolio = async (data) => {
   return response.data;
 };
 
-export const uploadImage = async (formData) => {
+export const uploadFile = async (formData) => {
   const response = await api.post('/upload', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
@@ -18,3 +18,5 @@ export const uploadImage = async (formData) => {
   });
   return response.data;
 };
+
+export const uploadImage = uploadFile;
