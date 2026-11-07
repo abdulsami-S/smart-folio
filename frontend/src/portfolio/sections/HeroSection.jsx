@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useContext, useState } from 'react';
 import { gsap } from 'gsap';
-import { Download, ChevronRight, MapPin, Sparkles, ArrowDown } from 'lucide-react';
+import { ChevronRight, MapPin, Sparkles, ArrowDown } from 'lucide-react';
 import { ThemeContext } from '../../context/ThemeContext';
 import { FALLBACK_PROJECTS } from '../data/projects';
 
@@ -374,7 +374,6 @@ const Hero = ({ portfolio }) => {
                 variant="outline"
                 style={{ borderRadius: '16px 4px 16px 4px' }}
               >
-                <Download size={14} className="transition-transform group-hover:-translate-y-1" />
                 Resume
               </SwipeBtn>
             </div>
