@@ -197,7 +197,7 @@ const About = ({ portfolio }) => {
 
                   {/* Title */}
                   <p className="text-[var(--fg-40)] text-xs uppercase tracking-[0.25em] mb-2">
-                    Full Stack Developer
+                    Software Developer
                   </p>
 
                   {/* Tagline */}

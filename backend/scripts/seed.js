@@ -33,13 +33,13 @@ const seedDB = async () => {
     // 4. Seed Portfolio document with Sami's data
     await Portfolio.create({
       name: "Shaik Abdul Sami",
-      tagline: "Full Stack Developer · Software Engineer · IIIT Dharwad '27",
+      tagline: "Software Developer · Software Engineer · IIIT Dharwad '27",
       bio: "Pre-final year B.Tech CSE student at IIIT Dharwad (graduating 2027) with hands-on experience building full-stack web applications and AI-powered systems. Skilled in Python, JavaScript, React, and Flask.",
       email: "workwithsami07@gmail.com",
       phone: "+91 93812 09996",
       github: "https://github.com/abdulsami-S",
       linkedin: "https://linkedin.com/in/abdul-sami",
-      heroTitles: ["Full Stack Developer", "Software Engineer", "AI Builder", "Problem Solver", "IIIT Dharwad '27"],
+      heroTitles: ["Software Developer", "Software Engineer", "AI Builder", "Problem Solver", "IIIT Dharwad '27"],
       resumeUrl: "",
       socials: {
         github: "https://github.com/abdulsami-S",

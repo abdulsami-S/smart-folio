@@ -315,7 +315,7 @@ const Hero = ({ portfolio }) => {
         <p ref={labelRef} className="uppercase mb-6 font-semibold flex items-center gap-4"
           style={{ color:'var(--accent)',fontSize:'0.7rem',letterSpacing:'0.35em',opacity:0 }}>
           <span className="hero-label-line w-10 h-px bg-[var(--accent)] inline-block" style={{ transformOrigin:'left' }} />
-          FULL STACK DEVELOPER · AI ENTHUSIAST
+          SOFTWARE DEVELOPER · AI ENTHUSIAST
         </p>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-20 items-center">
