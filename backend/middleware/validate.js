@@ -50,11 +50,10 @@ const createProjectRules = [
   body('liveUrl')
     .optional({ values: 'falsy' })
     .trim()
-    .isURL().withMessage('liveUrl must be a valid URL'),
+    .isURL({ require_tld: false }).withMessage('liveUrl must be a valid URL'),
   body('imageUrl')
     .optional({ values: 'falsy' })
-    .trim()
-    .isURL().withMessage('imageUrl must be a valid URL'),
+    .trim(),
   body('category')
     .optional()
     .trim()

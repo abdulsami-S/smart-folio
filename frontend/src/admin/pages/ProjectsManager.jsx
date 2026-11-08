@@ -181,7 +181,10 @@ const ProjectsManager = () => {
       setIsModalOpen(false);
       refetch();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Action failed');
+      const errorMsg = error.response?.data?.errors 
+        ? error.response.data.errors.map(err => `${err.field}: ${err.message}`).join(', ') 
+        : (error.response?.data?.message || 'Action failed');
+      toast.error(errorMsg);
     }
   };
 
