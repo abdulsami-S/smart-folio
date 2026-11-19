@@ -32,6 +32,49 @@ const DEVICON_MAP = {
   "VS Code":           "devicon-vscode-plain colored",
   "Postman":           "devicon-postman-plain colored",
   "Linux":             "devicon-linux-plain colored",
+  // AI / ML extras
+  "LLM":               null,   // uses SVG fallback
+  "RAG":               null,   // uses SVG fallback
+  "TensorFlow":        "devicon-tensorflow-original colored",
+  "PyTorch":           "devicon-pytorch-original colored",
+  "Keras":             "devicon-keras-plain colored",
+  "OpenCV":            "devicon-opencv-plain colored",
+  "Jupyter":           "devicon-jupyter-plain colored",
+  "Matplotlib":        "devicon-matplotlib-plain colored",
+  "FastAPI":           "devicon-fastapi-plain colored",
+  "Docker":            "devicon-docker-plain colored",
+  "Kubernetes":        "devicon-kubernetes-plain colored",
+  "AWS":               "devicon-amazonwebservices-plain colored",
+  "GCP":               "devicon-googlecloud-plain colored",
+  "Azure":             "devicon-azure-plain colored",
+  "MongoDB":           "devicon-mongodb-plain colored",
+  "PostgreSQL":        "devicon-postgresql-plain colored",
+  "Redis":             "devicon-redis-plain colored",
+  "Tailwind":          "devicon-tailwindcss-plain colored",
+  "TypeScript":        "devicon-typescript-plain colored",
+  "Next.js":           "devicon-nextjs-plain colored",
+  "Django":            "devicon-django-plain colored",
+  "GraphQL":           "devicon-graphql-plain colored",
+};
+
+// SVG icons for tools not covered by devicon
+const SVG_ICON_MAP = {
+  "LLM": (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22">
+      <rect x="2" y="6" width="20" height="12" rx="3" stroke="#c9704a" strokeWidth="1.5"/>
+      <circle cx="7" cy="12" r="1.5" fill="#c9704a"/>
+      <circle cx="12" cy="12" r="1.5" fill="#c9704a"/>
+      <circle cx="17" cy="12" r="1.5" fill="#c9704a"/>
+      <path d="M7 4v2M12 4v2M17 4v2M7 18v2M12 18v2M17 18v2" stroke="#c9704a" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  ),
+  "RAG": (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22">
+      <path d="M4 6h16M4 10h10M4 14h13M4 18h8" stroke="#7c9fdb" strokeWidth="1.5" strokeLinecap="round"/>
+      <circle cx="19" cy="16" r="3" stroke="#7c9fdb" strokeWidth="1.5"/>
+      <path d="M21.5 18.5L23 20" stroke="#7c9fdb" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  ),
 };
 
 const skillData = [
@@ -259,7 +302,16 @@ const Skills = ({ skills }) => {
                           e.currentTarget.querySelector('.pill-tooltip').style.transform = 'translateX(-50%) translateY(0px)';
                         }}
                       >
+                        {/* 1. Known devicon */}
                         {DEVICON_MAP[s] && <i className={DEVICON_MAP[s]} style={{ fontSize:22,lineHeight:1 }} />}
+                        {/* 2. Custom SVG icon (LLM, RAG, …) */}
+                        {!DEVICON_MAP[s] && SVG_ICON_MAP[s] && SVG_ICON_MAP[s]}
+                        {/* 3. Text initials fallback for anything else */}
+                        {!DEVICON_MAP[s] && !SVG_ICON_MAP[s] && (
+                          <span style={{ fontSize:10, fontWeight:700, color:'var(--accent)', textAlign:'center', letterSpacing:'0.03em', lineHeight:1.2 }}>
+                            {s.split(/[\s.]+/).map(w => w[0]).join('').slice(0,3).toUpperCase()}
+                          </span>
+                        )}
                         <div className="pill-tooltip" style={{ position:'absolute',bottom:'110%',left:'50%',transform:'translateX(-50%) translateY(0px)',backgroundColor:'#1a0d17',color:'var(--fg)',fontSize:'0.65rem',fontWeight:600,letterSpacing:'0.05em',whiteSpace:'nowrap',padding:'4px 8px',borderRadius:6,border:'1px solid var(--border)',opacity:0,transition:'opacity 0.15s ease, transform 0.15s ease',pointerEvents:'none',zIndex:10 }}>
                           {s}
                         </div>
